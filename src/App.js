@@ -3,8 +3,8 @@ import axios from "axios";
 import { useRef } from "react";
 import "./App.css";
 import { marked } from "marked";
-import highlight from "highlight.js";
-import "highlight.js/styles/a11y-dark.css"; // 適用するテーマを指定
+import hljs from "highlight.js";
+import "highlight.js/styles/a11y-dark.css"; // シンタックスハイライトのレイアウト
 
 function App() {
   const [searchWord, setSearchWord] = useState("");
@@ -27,6 +27,8 @@ function App() {
       .then((response) => response.json())
       .then((data) => setChatHistory(data))
       .catch((error) => console.error("Error:", error));
+
+    console.log("threadId:", threadId);
   }, [threadId]);
 
   // 文字が追加されたら下までスクロール
@@ -45,6 +47,17 @@ function App() {
       setSearchWord("");
     }
   }, [searchWord]);
+
+  // ハイライトの適用
+  useEffect(() => {
+    chatHistory.forEach((chat) => {
+      if (chat.ai_response) {
+        document.querySelectorAll("pre code").forEach((block) => {
+          hljs.highlightBlock(block);
+        });
+      }
+    });
+  }, [chatHistory]);
 
   // 送信ボタンを押したら、メッセージボックスを空にする
   const clearInput = () => {
@@ -68,7 +81,7 @@ function App() {
     highlight: (code, lang) => {
       return (
         '<code class="hljs">' +
-        highlight.highlightAuto(code, [lang]).value +
+        hljs.highlightAuto(code, [lang]).value +
         "</code>"
       );
     },
@@ -87,7 +100,7 @@ function App() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ search_word: searchWord }),
+      body: JSON.stringify({ search_word: searchWord, thread_id: threadId }),
     });
     const data = await response.json();
 
