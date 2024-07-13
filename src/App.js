@@ -13,6 +13,7 @@ function App() {
   // 送信ボタンの有効無効
   const [isSendButtonDisabled, setIsSendButtonDisabled] = useState(true);
   const bottomRef = useRef(null);
+  const textareaRef = useRef(null);
 
   // 下までスクロール
   const scrollToBottom = () => {
@@ -48,17 +49,6 @@ function App() {
     }
   }, [searchWord]);
 
-  // ハイライトの適用
-  useEffect(() => {
-    chatHistory.forEach((chat) => {
-      if (chat.ai_response) {
-        document.querySelectorAll("pre code").forEach((block) => {
-          hljs.highlightBlock(block);
-        });
-      }
-    });
-  }, [chatHistory]);
-
   // 送信ボタンを押したら、メッセージボックスを空にする
   const clearInput = () => {
     setSearchWord("");
@@ -88,6 +78,11 @@ function App() {
   };
 
   const handleKeyDown = (e) => {
+    // Shift + Enterで改行
+    if (e.key === "Enter" && e.shiftKey) {
+      return;
+    }
+    // Enterで送信
     if (e.key === "Enter" && !e.nativeEvent.isComposing) {
       handleSubmit();
     }
@@ -95,6 +90,7 @@ function App() {
 
   const handleSubmit = async (e) => {
     clearInput();
+    if (searchWord.trim() === "") return; // 空のメッセージを送信しない
     const response = await fetch("http://localhost:8000/api/openai/", {
       method: "POST",
       headers: {
@@ -110,15 +106,43 @@ function App() {
     ]);
   };
 
+  // textareaの高さを自動調整
+  const textarea = document.getElementById("search-bar-input");
+  textarea.addEventListener("input", (e) => {
+    e.target.style.height = "auto";
+    e.target.style.height = e.target.scrollHeight + "px";
+  });
+
   return (
     <div className="App">
       <div className="chat-container flex">
-        <h1 className="flex-col">Co-Programmer</h1>
         <div className="flex">
           <aside className="bg-red-500 h-100 ">
             <div className="sticky top-0">
-              <button onClick={handleCreateNewThread}>
-                新しいチャットを開始
+              <button
+                className="rounded border bg-white px-2 py-1 shadow transition hover:bg-gray-100"
+                onClick={handleCreateNewThread}
+              >
+                <span className="tooltip rounded shadow-lg p-1 bg-red-600">
+                  新しいチャットを作成
+                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="50"
+                  height="50"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="feather feather-message-circle"
+                >
+                  <path d="M21 11.5a8.38 8.38 0 0 1-1.82 5.22 8.5 8.5 0 0 1-6.82 3.28 8.38 8.38 0 0 1-5.22-1.82L2 22l1.82-5.22A8.38 8.38 0 0 1 4 11.5a8.5 8.5 0 1 1 17 0z" />
+                  <circle cx="8" cy="11.5" r="1" fill="currentColor" />
+                  <circle cx="12" cy="11.5" r="1" fill="currentColor" />
+                  <circle cx="16" cy="11.5" r="1" fill="currentColor" />
+                </svg>
               </button>
               <p>aaaa</p>
               <p>bbbb</p>
@@ -235,6 +259,8 @@ function App() {
             required
             placeholder="AIに質問する"
             rows={1}
+            ref={textareaRef}
+            style={{ overflow: "hidden" }}
           />
           <button disabled={isSendButtonDisabled} type="submit">
             <svg
