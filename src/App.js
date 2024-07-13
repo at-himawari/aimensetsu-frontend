@@ -54,6 +54,24 @@ function App() {
     setSearchWord("");
   };
 
+  // テキストエリアの高さを自動調整
+  useEffect(() => {
+    if (textareaRef.current) {
+      const handleTextareaInput = () => {
+        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      };
+
+      textareaRef.current.addEventListener('input', handleTextareaInput);
+
+      return () => {
+        if (textareaRef.current) {
+          textareaRef.current.removeEventListener('input', handleTextareaInput);
+        }
+      };
+    }
+  }, []);
+
   const handleCreateNewThread = async () => {
     try {
       const response = await axios.post(
@@ -107,11 +125,19 @@ function App() {
   };
 
   // textareaの高さを自動調整
-  const textarea = document.getElementById("search-bar-input");
-  textarea.addEventListener("input", (e) => {
-    e.target.style.height = "auto";
-    e.target.style.height = e.target.scrollHeight + "px";
-  });
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    const handleTextareaInput = () => {
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    };
+  
+    textarea.addEventListener('input', handleTextareaInput);
+  
+    return () => {
+      textarea.removeEventListener('input', handleTextareaInput);
+    };
+  }, []);
 
   return (
     <div className="App">
