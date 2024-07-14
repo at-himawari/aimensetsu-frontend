@@ -9,11 +9,14 @@ import "highlight.js/styles/a11y-dark.css"; // シンタックスハイライト
 function App() {
   const [searchWord, setSearchWord] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
-  const [threadId, setThreadId] = useState("default_thread"); // スレッドIDの管理
+  const [threadId, setThreadId] = useState(null); // スレッドIDの管理
   // 送信ボタンの有効無効
   const [isSendButtonDisabled, setIsSendButtonDisabled] = useState(true);
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
+  // スレッド一覧
+  const [threads, setThreads] = useState([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // サイドバーの表示状態
 
   // 下までスクロール
   const scrollToBottom = () => {
@@ -22,8 +25,19 @@ function App() {
     }
   };
 
+  // 初期レンダリング時にスレッドIDを取得して、チャットを表示する
+  useEffect(() => {
+    fetch("http://localhost:8000/api/new-thread/", { method: "POST" })
+      .then((response) => response.json())
+      .then((data) => {
+        setThreadId(data.thread_id);
+      })
+      .catch((error) => console.error("Error:", error));
+  }, []);
+
   useEffect(() => {
     // チャット履歴の取得
+    if (!threadId) return;
     fetch(`http://localhost:8000/api/chat-history/?thread_id=${threadId}`)
       .then((response) => response.json())
       .then((data) => setChatHistory(data))
@@ -58,18 +72,51 @@ function App() {
   useEffect(() => {
     if (textareaRef.current) {
       const handleTextareaInput = () => {
-        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = "auto";
         textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
       };
 
-      textareaRef.current.addEventListener('input', handleTextareaInput);
+      textareaRef.current.addEventListener("input", handleTextareaInput);
 
       return () => {
         if (textareaRef.current) {
-          textareaRef.current.removeEventListener('input', handleTextareaInput);
+          textareaRef.current.removeEventListener("input", handleTextareaInput);
         }
       };
     }
+  }, []);
+
+  const getThreadSummary = async (threadId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/thread-summary/${threadId}/`
+      );
+      const data = await response.json();
+      return data.summary;
+    } catch (error) {
+      console.error("Error fetching thread summary:", error);
+    }
+  };
+
+  const getAllThreads = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/all-threads/");
+      const data = await response.json();
+      return data.threads;
+    } catch (error) {
+      console.error("Error fetching all threads:", error);
+    }
+  };
+
+  // 使用例
+  useEffect(() => {
+    const fetchAllThreads = async () => {
+      const threads = await getAllThreads();
+      setThreads(threads);
+      console.log(threads);
+    };
+
+    fetchAllThreads();
   }, []);
 
   const handleCreateNewThread = async () => {
@@ -109,6 +156,13 @@ function App() {
   const handleSubmit = async (e) => {
     clearInput();
     if (searchWord.trim() === "") return; // 空のメッセージを送信しない
+    // チャット履歴がない場合、要約を取得
+    if (chatHistory.length === 0) {
+      const summary = await getThreadSummary(threadId);
+      // threadsの一番上に追加
+      setThreads([summary, ...threads]);
+      console.log(summary);
+    }
     const response = await fetch("http://localhost:8000/api/openai/", {
       method: "POST",
       headers: {
@@ -128,53 +182,86 @@ function App() {
   useEffect(() => {
     const textarea = textareaRef.current;
     const handleTextareaInput = () => {
-      textarea.style.height = 'auto';
+      textarea.style.height = "auto";
       textarea.style.height = `${textarea.scrollHeight}px`;
     };
-  
-    textarea.addEventListener('input', handleTextareaInput);
-  
+
+    textarea.addEventListener("input", handleTextareaInput);
+
     return () => {
-      textarea.removeEventListener('input', handleTextareaInput);
+      textarea.removeEventListener("input", handleTextareaInput);
     };
   }, []);
+
+  const handleThreadClick = (threadId) => {
+    setThreadId(threadId);
+  };
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+  };
 
   return (
     <div className="App">
       <div className="chat-container flex">
         <div className="flex">
-          <aside className="bg-red-500 h-100 ">
-            <div className="sticky top-0">
-              <button
-                className="rounded border bg-white px-2 py-1 shadow transition hover:bg-gray-100"
-                onClick={handleCreateNewThread}
-              >
-                <span className="tooltip rounded shadow-lg p-1 bg-red-600">
-                  新しいチャットを作成
-                </span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="50"
-                  height="50"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="feather feather-message-circle"
-                >
-                  <path d="M21 11.5a8.38 8.38 0 0 1-1.82 5.22 8.5 8.5 0 0 1-6.82 3.28 8.38 8.38 0 0 1-5.22-1.82L2 22l1.82-5.22A8.38 8.38 0 0 1 4 11.5a8.5 8.5 0 1 1 17 0z" />
-                  <circle cx="8" cy="11.5" r="1" fill="currentColor" />
-                  <circle cx="12" cy="11.5" r="1" fill="currentColor" />
-                  <circle cx="16" cy="11.5" r="1" fill="currentColor" />
-                </svg>
-              </button>
-              <p>aaaa</p>
-              <p>bbbb</p>
-              <p>cccc</p>
-            </div>
-          </aside>
+        <div className="App">
+      {/* サイドバートグルボタン */}
+      <div className="p-4 md:hidden">
+        <button
+          onClick={toggleSidebar}
+          className="p-2 text-white bg-blue-600 rounded"
+        >
+          Toggle Sidebar
+        </button>
+      </div>
+
+      {/* サイドバー */}
+      <div
+        className={`fixed top-0 left-0 w-64 h-full bg-white transition-transform transform ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0 md:relative md:w-64 md:h-auto md:bg-transparent z-50`}
+      >
+        <div className="p-4 bg-white md:bg-transparent">
+          <button
+            onClick={closeSidebar}
+            className="p-2 text-white bg-red-600 rounded md:hidden"
+          >
+            Close Sidebar
+          </button>
+          <h2 className="text-2xl font-bold">Menu</h2>
+          <ul className="mt-4 space-y-2">
+            <li>
+              <a href="#" className="block p-2 text-gray-700 bg-gray-200 rounded">
+                Dashboard
+              </a>
+            </li>
+                  {threads.map((thread) => (
+                    <li key={thread.thread_id}>
+                      <button
+                        onClick={() => handleThreadClick(thread.thread_id)}
+                        className="block py-100 text-gray-700 bg-gray-200 rounded"
+                      >
+                        {thread.summary}
+                      </button>
+                    </li>
+                  ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* オーバーレイ */}
+      {isSidebarOpen && (
+        <div
+          onClick={closeSidebar}
+          className="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 md:hidden"
+        ></div>
+      )}
+    </div>
+          
 
           <div className="messages-container">
             {chatHistory.map((chat, index) => (
