@@ -5,6 +5,12 @@ import "./App.css";
 import { marked } from "marked";
 import hljs from "highlight.js";
 import "highlight.js/styles/a11y-dark.css"; // シンタックスハイライトのレイアウト
+// align-left-svgrepo-com.svgの読み込み
+import { ReactComponent as AlignLeftIcon } from "./img/align-left-svgrepo-com.svg";
+// AIのイラスト
+import { ReactComponent as AiIcon } from "./img/ai-icon.svg";
+// 送信ボタンイラスト
+import { ReactComponent as SendIcon } from "./img/send-icon.svg";
 
 function App() {
   const [searchWord, setSearchWord] = useState("");
@@ -17,6 +23,8 @@ function App() {
   // スレッド一覧
   const [threads, setThreads] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // サイドバーの表示状態
+  // textareaの有効･無効
+  const [isTextareaDisabled, setIsTextareaDisabled] = useState(false);
 
   // 下までスクロール
   const scrollToBottom = () => {
@@ -25,19 +33,13 @@ function App() {
     }
   };
 
-  // 初期レンダリング時にスレッドIDを取得して、チャットを表示する
-  useEffect(() => {
-    fetch("http://localhost:8000/api/new-thread/", { method: "POST" })
-      .then((response) => response.json())
-      .then((data) => {
-        setThreadId(data.thread_id);
-      })
-      .catch((error) => console.error("Error:", error));
-  }, []);
-
   useEffect(() => {
     // チャット履歴の取得
-    if (!threadId) return;
+    if (!threadId) {
+      setIsTextareaDisabled(true);
+      return;
+    }
+    setIsTextareaDisabled(false);
     fetch(`http://localhost:8000/api/chat-history/?thread_id=${threadId}`)
       .then((response) => response.json())
       .then((data) => setChatHistory(data))
@@ -86,18 +88,6 @@ function App() {
     }
   }, []);
 
-  const getThreadSummary = async (threadId) => {
-    try {
-      const response = await fetch(
-        `http://localhost:8000/api/thread-summary/${threadId}/`
-      );
-      const data = await response.json();
-      return data.summary;
-    } catch (error) {
-      console.error("Error fetching thread summary:", error);
-    }
-  };
-
   const getAllThreads = async () => {
     try {
       const response = await fetch("http://localhost:8000/api/all-threads/");
@@ -127,6 +117,10 @@ function App() {
       const newThreadId = response.data.thread_id;
       setThreadId(newThreadId); // 新しいスレッドIDを設定
       setChatHistory([]); // チャット履歴をクリア
+
+      // スレッド履歴を取得して、スレッドを更新
+      const threads = await getAllThreads();
+      setThreads(threads);
     } catch (error) {
       console.error("Error creating new thread:", error);
     }
@@ -149,20 +143,16 @@ function App() {
     }
     // Enterで送信
     if (e.key === "Enter" && !e.nativeEvent.isComposing) {
-      handleSubmit();
+      handleSubmit(e);
     }
   };
 
   const handleSubmit = async (e) => {
+    e.preventDefault();
     clearInput();
     if (searchWord.trim() === "") return; // 空のメッセージを送信しない
-    // チャット履歴がない場合、要約を取得
-    if (chatHistory.length === 0) {
-      const summary = await getThreadSummary(threadId);
-      // threadsの一番上に追加
-      setThreads([summary, ...threads]);
-      console.log(summary);
-    }
+    // チャット履歴がない場合、要約タイトルを取得
+
     const response = await fetch("http://localhost:8000/api/openai/", {
       method: "POST",
       headers: {
@@ -171,6 +161,12 @@ function App() {
       body: JSON.stringify({ search_word: searchWord, thread_id: threadId }),
     });
     const data = await response.json();
+    if (chatHistory.length === 0) {
+      // スレッド履歴を取得して、スレッドを更新
+      const allThreads = await getAllThreads();
+      setThreads(allThreads);
+      console.log(threads);
+    }
 
     setChatHistory([
       ...chatHistory,
@@ -204,64 +200,96 @@ function App() {
     setIsSidebarOpen(false);
   };
 
+  //日付をYYYY/MM/DD HH:MM:SS形式に変換
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = ("0" + (d.getMonth() + 1)).slice(-2);
+    const day = ("0" + d.getDate()).slice(-2);
+    const hour = ("0" + d.getHours()).slice(-2);
+    const minute = ("0" + d.getMinutes()).slice(-2);
+    const second = ("0" + d.getSeconds()).slice(-2);
+    // もし、年･月･日･時･分･秒のうちいずれかがNanの場合、空文字を返す
+    if (
+      isNaN(year) ||
+      isNaN(month) ||
+      isNaN(day) ||
+      isNaN(hour) ||
+      isNaN(minute) ||
+      isNaN(second)
+    ) {
+      return "";
+    }
+
+    return `${year}/${month}/${day} ${hour}:${minute}:${second}`;
+  };
+
   return (
     <div className="App">
-      <div className="chat-container flex">
+      <div className="chat-container flex -z-1">
         <div className="flex">
-        <div className="App">
-      {/* サイドバートグルボタン */}
-      <div className="p-4 md:hidden">
-        <button
-          onClick={toggleSidebar}
-          className="p-2 text-white bg-blue-600 rounded"
-        >
-          Toggle Sidebar
-        </button>
-      </div>
+          <div className="App">
+            {/* サイドバートグルボタン */}
+            <div className="p-4 md:hidden">
+              <button
+                onClick={toggleSidebar}
+                className="p-2 text-white bg-blue-600 rounded"
+              >
+                <AlignLeftIcon width={"20px"} height={"20px"} />
+              </button>
+            </div>
 
-      {/* サイドバー */}
-      <div
-        className={`fixed top-0 left-0 w-64 h-full bg-white transition-transform transform ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 md:relative md:w-64 md:h-auto md:bg-transparent z-50`}
-      >
-        <div className="p-4 bg-white md:bg-transparent">
-          <button
-            onClick={closeSidebar}
-            className="p-2 text-white bg-red-600 rounded md:hidden"
-          >
-            Close Sidebar
-          </button>
-          <h2 className="text-2xl font-bold">Menu</h2>
-          <ul className="mt-4 space-y-2">
-            <li>
-              <a href="#" className="block p-2 text-gray-700 bg-gray-200 rounded">
-                Dashboard
-              </a>
-            </li>
-                  {threads.map((thread) => (
-                    <li key={thread.thread_id}>
-                      <button
-                        onClick={() => handleThreadClick(thread.thread_id)}
-                        className="block py-100 text-gray-700 bg-gray-200 rounded"
-                      >
-                        {thread.summary}
-                      </button>
-                    </li>
-                  ))}
-          </ul>
-        </div>
-      </div>
+            {/* サイドバー */}
+            <div
+              className={`z-10 fixed top-0 left-0 w-64 h-full bg-white transition-transform transform ${
+                isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+              } md:translate-x-0 md:relative md:w-64 md:h-auto md:bg-transparent z-50`}
+            >
+              <div className="p-4 bg-white md:bg-transparent overflow-y-auto h-screen">
+                <button
+                  onClick={closeSidebar}
+                  className="p-2 text-white bg-red-600 rounded md:hidden"
+                >
+                  閉じる
+                </button>
+                <h2 className="text-2xl font-bold text-gray-700">Menu</h2>
+                <ul className="mt-4 space-y-2">
+                  <li>
+                    <button
+                      onClick={handleCreateNewThread}
+                      className="block hover:bg-gray-400 hover:scale-105 mb-4 p-2 w-full text-gray-700 bg-gray-200 rounded"
+                    >
+                      + 新しいチャットを作成
+                    </button>
+                  </li>
+                  <p className="border-b-2"></p>
+                  {threads
+                    .slice()
+                    .reverse()
+                    .map((thread) => (
+                      <li key={thread.thread_id}>
+                        {formatDate(thread.created_at)}
 
-      {/* オーバーレイ */}
-      {isSidebarOpen && (
-        <div
-          onClick={closeSidebar}
-          className="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 md:hidden"
-        ></div>
-      )}
-    </div>
-          
+                        <button
+                          onClick={() => handleThreadClick(thread.thread_id)}
+                          className="block truncate text-sm hover:bg-gray-400 hover:scale-105 overflow-hidden whitespace-nowrap max-w-xs py-100 w-full h-[64px] text-gray-700 bg-gray-200 rounded"
+                        >
+                          {thread.summary}
+                        </button>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* オーバーレイ */}
+            {isSidebarOpen && (
+              <div
+                onClick={closeSidebar}
+                className="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 md:hidden"
+              ></div>
+            )}
+          </div>
 
           <div className="messages-container">
             {chatHistory.map((chat, index) => (
@@ -272,84 +300,9 @@ function App() {
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <svg
-                    width="50"
-                    height="50"
-                    viewBox="0 0 200 200"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect
-                      x="50"
-                      y="70"
-                      width="100"
-                      height="80"
-                      rx="15"
-                      fill="#4CAF50"
-                      stroke="#2E7D32"
-                      strokeWidth="3"
-                    />
-                    <rect
-                      x="70"
-                      y="30"
-                      width="60"
-                      height="40"
-                      rx="10"
-                      fill="#4CAF50"
-                      stroke="#2E7D32"
-                      strokeWidth="3"
-                    />
-                    <circle cx="85" cy="50" r="5" fill="#FFFFFF" />
-                    <circle cx="115" cy="50" r="5" fill="#FFFFFF" />
-                    <rect
-                      x="90"
-                      y="60"
-                      width="20"
-                      height="5"
-                      rx="2"
-                      fill="#FFFFFF"
-                    />
-                    <rect
-                      x="30"
-                      y="80"
-                      width="20"
-                      height="40"
-                      rx="10"
-                      fill="#4CAF50"
-                      stroke="#2E7D32"
-                      strokeWidth="3"
-                    />
-                    <rect
-                      x="150"
-                      y="80"
-                      width="20"
-                      height="40"
-                      rx="10"
-                      fill="#4CAF50"
-                      stroke="#2E7D32"
-                      strokeWidth="3"
-                    />
-                    <rect
-                      x="70"
-                      y="150"
-                      width="20"
-                      height="40"
-                      rx="10"
-                      fill="#4CAF50"
-                      stroke="#2E7D32"
-                      strokeWidth="3"
-                    />
-                    <rect
-                      x="110"
-                      y="150"
-                      width="20"
-                      height="40"
-                      rx="10"
-                      fill="#4CAF50"
-                      stroke="#2E7D32"
-                      strokeWidth="3"
-                    />
-                  </svg>
+                  {/** AIのイラスト */}
+                  <AiIcon />
+
                   <p
                     className="flex-1"
                     dangerouslySetInnerHTML={{
@@ -362,7 +315,7 @@ function App() {
           </div>
         </div>
         <span ref={bottomRef} />
-        <form className="search-bar">
+        <form className="search-bar fixed left-0 w-full bg-white z-50">
           <textarea
             id="search-bar-input"
             type="text"
@@ -370,22 +323,19 @@ function App() {
             onChange={(e) => setSearchWord(e.target.value)}
             onKeyDown={handleKeyDown}
             required
-            placeholder="AIに質問する"
+            placeholder={
+              isTextareaDisabled
+                ? "新しいチャットを作成または既存のチャットを選択してください"
+                : "AIに質問してみよう！"
+            }
             rows={1}
             ref={textareaRef}
             style={{ overflow: "hidden" }}
+            disabled={isTextareaDisabled}
           />
           <button disabled={isSendButtonDisabled} type="submit">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="30"
-              height="30"
-              fill="currentColor"
-              className="bi bi-arrow-up-circle-fill"
-              viewBox="0 0 16 16"
-            >
-              <path d="M16 8A8 8 0 1 0 0 8a8 8 0 0 0 16 0zm-7.5 3.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V11.5z" />
-            </svg>
+            {/**送信ボタン画像 */}
+            <SendIcon />
           </button>
         </form>
       </div>
