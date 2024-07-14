@@ -25,6 +25,10 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // サイドバーの表示状態
   // textareaの有効･無効
   const [isTextareaDisabled, setIsTextareaDisabled] = useState(false);
+  // 新規スレッド作成済み
+  const [isNewThreadCreated, setIsNewThreadCreated] = useState(false);
+  // textareaのフォーカス状態
+  const [isTextareaFocused, setIsTextareaFocused] = useState(false);
 
   // 下までスクロール
   const scrollToBottom = () => {
@@ -37,9 +41,11 @@ function App() {
     // チャット履歴の取得
     if (!threadId) {
       setIsTextareaDisabled(true);
+      setIsNewThreadCreated(false);
       return;
     }
     setIsTextareaDisabled(false);
+    setIsNewThreadCreated(true);
     fetch(`http://localhost:8000/api/chat-history/?thread_id=${threadId}`)
       .then((response) => response.json())
       .then((data) => setChatHistory(data))
@@ -121,6 +127,9 @@ function App() {
       // スレッド履歴を取得して、スレッドを更新
       const threads = await getAllThreads();
       setThreads(threads);
+      setIsNewThreadCreated(true);
+      setIsTextareaFocused(true);
+      closeSidebar();
     } catch (error) {
       console.error("Error creating new thread:", error);
     }
@@ -291,7 +300,24 @@ function App() {
             )}
           </div>
 
-          <div className="messages-container">
+          <div className="messages-container ">
+            
+              {/**カード表示 */}
+            {!isNewThreadCreated && isTextareaDisabled && (
+              <div className=" flex justify-center items-center h-screen">
+                <div className="flex flex-col items-center">
+                  <div
+                    onClick={handleCreateNewThread}
+                    autoFocus={isTextareaFocused}
+                    className="w-50 h-50 bg-white rounded-lg shadow-lg p-4"
+                  >
+                    <h2 className="text-xl font-bold">AI Chat</h2>
+                    <p>AIに質問してみよう！</p>
+                  </div>
+                </div>
+                </div>
+              )}
+
             {chatHistory.map((chat, index) => (
               <div key={index}>
                 <div className="flex justify-end my-5">
