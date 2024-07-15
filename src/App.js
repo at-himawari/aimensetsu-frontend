@@ -11,6 +11,7 @@ import { ReactComponent as AlignLeftIcon } from "./img/align-left-svgrepo-com.sv
 import { ReactComponent as AiIcon } from "./img/ai-icon.svg";
 // 送信ボタンイラスト
 import { ReactComponent as SendIcon } from "./img/send-icon.svg";
+import HeaderWide from "./img/header-wide.png"; // 画像のパスを指定
 
 function App() {
   const [searchWord, setSearchWord] = useState("");
@@ -177,6 +178,8 @@ function App() {
       console.log(threads);
     }
 
+    console.log(threadId);
+
     setChatHistory([
       ...chatHistory,
       { user_input: searchWord, ai_response: data.response },
@@ -200,6 +203,8 @@ function App() {
 
   const handleThreadClick = (threadId) => {
     setThreadId(threadId);
+    // サイドバーを閉じる
+    closeSidebar();
   };
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -207,6 +212,14 @@ function App() {
 
   const closeSidebar = () => {
     setIsSidebarOpen(false);
+  };
+  // 無題のチャットの場合、無題のチャットと表示
+  const getThreadSummary = (thread) => {
+    if (thread.summary === "") {
+      return "無題の面接";
+    } else {
+      return thread.summary;
+    }
   };
 
   //日付をYYYY/MM/DD HH:MM:SS形式に変換
@@ -235,6 +248,9 @@ function App() {
 
   return (
     <div className="App">
+      <header className="w-full">
+        <img src={HeaderWide} alt="header w-full md:h-auto sm:h-[80px]" />
+      </header>
       <div className="chat-container flex -z-1">
         <div className="flex">
           <div className="App">
@@ -268,10 +284,11 @@ function App() {
                       onClick={handleCreateNewThread}
                       className="block hover:bg-gray-400 hover:scale-105 mb-4 p-2 w-full text-gray-700 bg-gray-200 rounded"
                     >
-                      + 新しいチャットを作成
+                      + 新しい面接官と話す
                     </button>
                   </li>
                   <p className="border-b-2"></p>
+                  <p className="text-gray-700 font-bold text-xl">面接履歴</p>
                   {threads
                     .slice()
                     .reverse()
@@ -283,7 +300,7 @@ function App() {
                           onClick={() => handleThreadClick(thread.thread_id)}
                           className="block truncate text-sm hover:bg-gray-400 hover:scale-105 overflow-hidden whitespace-nowrap max-w-xs py-100 w-full h-[64px] text-gray-700 bg-gray-200 rounded"
                         >
-                          {thread.summary}
+                          {getThreadSummary(thread)}
                         </button>
                       </li>
                     ))}
@@ -301,8 +318,7 @@ function App() {
           </div>
 
           <div className="messages-container ">
-            
-              {/**カード表示 */}
+            {/**カード表示 */}
             {!isNewThreadCreated && isTextareaDisabled && (
               <div className=" flex justify-center items-center h-screen">
                 <div className="flex flex-col items-center">
@@ -311,12 +327,12 @@ function App() {
                     autoFocus={isTextareaFocused}
                     className="w-50 h-50 bg-white rounded-lg shadow-lg p-4"
                   >
-                    <h2 className="text-xl font-bold">AI Chat</h2>
-                    <p>AIに質問してみよう！</p>
+                    <h2 className="text-xl font-bold">新しい面接官と話す</h2>
+                    <p>本番前の準備をしましょう！</p>
                   </div>
                 </div>
-                </div>
-              )}
+              </div>
+            )}
 
             {chatHistory.map((chat, index) => (
               <div key={index}>
@@ -351,15 +367,19 @@ function App() {
             required
             placeholder={
               isTextareaDisabled
-                ? "新しいチャットを作成または既存のチャットを選択してください"
-                : "AIに質問してみよう！"
+                ? "｢新しい面接官と話す｣をクリックしてください"
+                : "メッセージを入力してください"
             }
             rows={1}
             ref={textareaRef}
             style={{ overflow: "hidden" }}
             disabled={isTextareaDisabled}
           />
-          <button disabled={isSendButtonDisabled} type="submit">
+          <button
+            disabled={isSendButtonDisabled}
+            onClick={handleSubmit}
+            type="submit"
+          >
             {/**送信ボタン画像 */}
             <SendIcon />
           </button>
