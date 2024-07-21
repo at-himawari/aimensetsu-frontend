@@ -12,6 +12,8 @@ import { ReactComponent as AiIcon } from "./img/ai-icon.svg";
 // 送信ボタンイラスト
 import { ReactComponent as SendIcon } from "./img/send-icon.svg";
 import HeaderWide from "./img/header-wide.png"; // 画像のパスを指定
+import { useCookies } from "react-cookie";
+import { useNavigate } from "react-router-dom";
 
 function ChatComponent({ authTokens, user, setIsError }) {
   const [searchWord, setSearchWord] = useState("");
@@ -32,6 +34,12 @@ function ChatComponent({ authTokens, user, setIsError }) {
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
   // AIチャットローディング状態
   const [isChatLoading, setIsChatLoading] = useState(false);
+  // Cookieの読み込み
+  const [cookies, setCookie, removeCookie] = useCookies();
+  const navigate = useNavigate();
+
+
+  // 初期メッセージの取得
 
   // 下までスクロール
   const scrollToBottom = () => {
@@ -59,9 +67,15 @@ function ChatComponent({ authTokens, user, setIsError }) {
           open: true,
           message: "チャット履歴の取得に失敗しました。",
         });
+        navigate("/error_modal");
       }
     };
     fetchChatHistory();
+
+    // authtokenをCookieに保存
+    if (authTokens) {
+      setCookie("authTokens", authTokens, { path: "/" });
+    }
   }, [threadId, authTokens]);
 
   useEffect(() => {
@@ -86,6 +100,7 @@ function ChatComponent({ authTokens, user, setIsError }) {
           open: true,
           message: "チャット履歴の取得に失敗しました。",
         });
+        navigate("/error_modal");
       });
 
     console.log("threadId:", threadId);
@@ -143,6 +158,7 @@ function ChatComponent({ authTokens, user, setIsError }) {
     } catch (error) {
       console.error("Error fetching all threads:", error);
       setIsError({ open: true, message: "スレッドの取得に失敗しました。" });
+      navigate("/error_modal");
     }
   };
 
@@ -184,6 +200,7 @@ function ChatComponent({ authTokens, user, setIsError }) {
         open: true,
         message: "新しいスレッドの作成に失敗しました。",
       });
+      navigate("/error_modal");
     }
   };
 
@@ -242,6 +259,7 @@ function ChatComponent({ authTokens, user, setIsError }) {
     } catch (error) {
       console.error("Error sending message:", error);
       setIsError({ open: true, message: "メッセージの送信に失敗しました。" });
+      navigate("/error_modal");
     }
   };
 
@@ -363,6 +381,7 @@ function ChatComponent({ authTokens, user, setIsError }) {
                           >
                             {getThreadSummary(thread)}
                           </button>
+                          <button className="hidden hover:display">aaa</button>
                         </li>
                       ))}
                 </ul>

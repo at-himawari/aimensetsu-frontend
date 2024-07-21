@@ -1,28 +1,62 @@
-import React, { useState } from 'react';
-import LoginForm from './LoginForm';
-import ChatComponent from './ChatComponent';
-import RegisterForm from './RegisterForm';
-import ErrorModal from './ErrorModal';
+import React, { useState, useEffect } from "react";
+import LoginForm from "./LoginForm";
+import ChatComponent from "./ChatComponent";
+import RegisterForm from "./RegisterForm";
+import ErrorModal from "./ErrorModal";
+import { useCookies } from "react-cookie";
+import { Route, Routes } from "react-router-dom";
 
 function App() {
   const [authTokens, setAuthTokens] = useState(null);
   const [user, setUser] = useState(null);
   const [showRegister, setShowRegister] = useState(false);
-  const [isError, setIsError] = useState({ open: false, message: '' });
+  const [isError, setIsError] = useState({ open: false, message: "" });
+  const [isLogin, setIsLogin] = useState(false);
+  const [cookies, setCookie, removeCookie] = useCookies();
+
+  // ログイン状態の初期化
+  useEffect(() => {
+    if (authTokens) {
+      setIsLogin(true);
+    }
+    // Cookieにトークンがあるかどうかを確認
+    else if (cookies.authTokens) {
+      setAuthTokens(cookies.authTokens);
+      setIsLogin(true);
+    }
+  }, []);
   return (
     <div className="App">
-      {!authTokens ? (
-        <>
-          {showRegister ? (
-            <RegisterForm />
-          ) : (
+      <Routes>
+        <Route path="/register" element={<RegisterForm />} />
+        <Route
+          path="/"
+          element={
             <LoginForm setAuthTokens={setAuthTokens} setUser={setUser} />
-          )}
-          <button onClick={() => setShowRegister(!showRegister)} className="p-2 bg-blue-600 text-white rounded">
-            {showRegister ? 'ログイン画面へ' : '新規登録画面へ'}
-          </button>
-        </>
-          ) : (isError.open ? <ErrorModal open={isError.open} onCancel={() => setIsError(false)} message={isError.message} onOk={()=>setIsError(false)} />: <ChatComponent authTokens={authTokens} user={user} setIsError={setIsError} />)}
+          }
+        />
+        <Route
+          path="/chat"
+          element={
+            <ChatComponent
+              authTokens={authTokens}
+              user={user}
+              setIsError={setIsError}
+            />
+          }
+              />
+                    <Route
+        path="/error_modal"
+        element={
+          <ErrorModal
+            open={isError.open}
+            onCancel={() => setIsError({ open: false, message: "" })}
+            onOk={() => setIsError({ open: false, message: "" })}
+            message={isError.message}
+          />
+        }
+      />
+      </Routes>
     </div>
   );
 }
