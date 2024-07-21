@@ -38,6 +38,8 @@ function ChatComponent({ authTokens, user, setIsError }) {
   const [isChatLoading, setIsChatLoading] = useState(false);
   // Cookieの読み込み
   const [cookies, setCookie, removeCookie] = useCookies();
+  // 初メッセージ
+  const [initialMessage, setInitialMessage] = useState("");
   const navigate = useNavigate();
 
   // 初期メッセージの取得
@@ -105,6 +107,25 @@ function ChatComponent({ authTokens, user, setIsError }) {
       });
 
     console.log("threadId:", threadId);
+
+
+
+    fetch(`http://localhost:8000/api/first-message/${threadId}/`, {
+      headers: {
+        Authorization: `Bearer ${authTokens.access}`,
+      },
+      method: "POST",
+    })
+      .then((response) => response.json())
+      .then((data) => setInitialMessage(data.response))
+      .catch((error) => {
+        console.error("Error fetching first message:", error);
+        setIsError({
+          open: true,
+          message: "初期メッセージの取得に失敗しました。",
+        });
+        navigate("/error_modal");
+      });
   }, [threadId]);
 
   // 文字が追加されたら下までスクロール
@@ -186,6 +207,7 @@ function ChatComponent({ authTokens, user, setIsError }) {
         }
       );
       const newThreadId = response.data.thread_id;
+      setInitialMessage(response.data.response);
       setThreadId(newThreadId); // 新しいスレッドIDを設定
       setChatHistory([]); // チャット履歴をクリア
 
@@ -255,7 +277,10 @@ function ChatComponent({ authTokens, user, setIsError }) {
 
       setChatHistory([
         ...chatHistory,
-        { user_input: searchWord, ai_response: data?.response || "･･･" },
+        {
+          user_input: searchWord,
+          ai_response: data?.response || "エラーが発生しました。",
+        },
       ]);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -426,29 +451,29 @@ function ChatComponent({ authTokens, user, setIsError }) {
 
           <div className="messages-container ">
             {/**カード表示 */}
-            {!isNewThreadCreated && isTextareaDisabled && (
-              <div className=" flex justify-center items-center h-screen">
-                <div className="flex flex-col items-center">
-                  <div
-                    onClick={handleCreateNewThread}
-                    autoFocus={isTextareaFocused}
-                    className="w-50 h-50 bg-white rounded-lg shadow-lg p-4"
-                  >
-                    <h2 className="text-xl font-bold">新しい面接官と話す</h2>
-                    <p>本番前の準備をしましょう！</p>
+            {!isNewThreadCreated &&
+              isTextareaDisabled &&
+              threads?.length === 0 && (
+                <div className=" flex justify-center items-center h-screen">
+                  <div className="flex flex-col items-center">
+                    <div
+                      onClick={handleCreateNewThread}
+                      autoFocus={isTextareaFocused}
+                      className="w-50 h-50 bg-white rounded-lg shadow-lg p-4"
+                    >
+                      <h2 className="text-xl font-bold">新しい面接官と話す</h2>
+                      <p>本番前の準備をしましょう！</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-            {!isTextareaDisabled && (
+              )}
+            {!isTextareaDisabled && threads.length !== 0 && (
               <div>
                 <div className="flex items-start">
                   {/** AIのイラスト */}
                   <AiIcon />
 
-                  <p className="flex-1">
-                    こんにちは。本日は面接におこしいただきありがとうございます。まずは、自己紹介から始めましょう!
-                  </p>
+                  <p className="flex-1">{initialMessage}</p>
                 </div>
               </div>
             )}

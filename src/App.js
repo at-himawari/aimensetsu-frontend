@@ -5,6 +5,7 @@ import RegisterForm from "./RegisterForm";
 import ErrorModal from "./ErrorModal";
 import { useCookies } from "react-cookie";
 import { Route, Routes } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function App() {
   const [authTokens, setAuthTokens] = useState(null);
@@ -13,6 +14,7 @@ function App() {
   const [isError, setIsError] = useState({ open: false, message: "" });
   const [isLogin, setIsLogin] = useState(false);
   const [cookies, setCookie, removeCookie] = useCookies();
+  const navigate = useNavigate();
 
   // ログイン状態の初期化
   useEffect(() => {
@@ -44,18 +46,24 @@ function App() {
               setIsError={setIsError}
             />
           }
-              />
-                    <Route
-        path="/error_modal"
-        element={
-          <ErrorModal
-            open={isError.open}
-            onCancel={() => setIsError({ open: false, message: "" })}
-            onOk={() => setIsError({ open: false, message: "" })}
-            message={isError.message}
-          />
-        }
-      />
+        />
+        <Route
+          path="/error_modal"
+          element={
+            <ErrorModal
+              open={isError.open}
+              onCancel={() => {
+                setIsError({ open: false, message: "" });
+                navigate("/chat");
+              }}
+                  onOk={() => {
+                      setIsError({ open: false, message: "" });
+                      navigate("/chat");
+                  }}
+              message={isError.message}
+            />
+          }
+        />
       </Routes>
     </div>
   );
