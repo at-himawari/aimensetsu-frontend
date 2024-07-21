@@ -14,6 +14,8 @@ import { ReactComponent as SendIcon } from "./img/send-icon.svg";
 import HeaderWide from "./img/header-wide.png"; // 画像のパスを指定
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
+// ゴミ箱アイコン
+import Trash from "./img/trash.svg";
 
 function ChatComponent({ authTokens, user, setIsError }) {
   const [searchWord, setSearchWord] = useState("");
@@ -37,7 +39,6 @@ function ChatComponent({ authTokens, user, setIsError }) {
   // Cookieの読み込み
   const [cookies, setCookie, removeCookie] = useCookies();
   const navigate = useNavigate();
-
 
   // 初期メッセージの取得
 
@@ -299,6 +300,25 @@ function ChatComponent({ authTokens, user, setIsError }) {
     }
   };
 
+  const handleDelete = async (threadId) => {
+    try {
+      await axios.delete(
+        `http://localhost:8000/api/delete-thread/${threadId}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${authTokens.access}`,
+          },
+        }
+      );
+      const allThreads = await getAllThreads();
+      setThreads(allThreads);
+    } catch (error) {
+      console.error("Error deleting thread:", error);
+      setIsError({ open: true, message: "スレッドの削除に失敗しました。" });
+      navigate("/error_modal");
+    }
+  };
+
   //日付をYYYY/MM/DD HH:MM:SS形式に変換
   const formatDate = (date) => {
     const d = new Date(date);
@@ -373,7 +393,14 @@ function ChatComponent({ authTokens, user, setIsError }) {
                       .reverse()
                       .map((thread) => (
                         <li key={thread.thread_id}>
-                          {formatDate(thread.created_at)}
+                          <div className="flex">
+                            {formatDate(thread.created_at)}
+                            <button
+                              onClick={() => handleDelete(thread.thread_id)}
+                            >
+                              <img src={Trash} alt="trash" />
+                            </button>
+                          </div>
 
                           <button
                             onClick={() => handleThreadClick(thread.thread_id)}
