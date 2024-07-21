@@ -106,8 +106,6 @@ function ChatComponent({ authTokens, user, setIsError }) {
         navigate("/error_modal");
       });
 
-    console.log("threadId:", threadId);
-
 
 
     fetch(`http://localhost:8000/api/first-message/${threadId}/`, {
@@ -189,7 +187,6 @@ function ChatComponent({ authTokens, user, setIsError }) {
     const fetchAllThreads = async () => {
       const threads = await getAllThreads();
       setThreads(threads);
-      console.log(threads);
     };
 
     fetchAllThreads();
@@ -269,10 +266,8 @@ function ChatComponent({ authTokens, user, setIsError }) {
         // スレッド履歴を取得して、スレッドを更新
         const allThreads = await getAllThreads();
         setThreads(allThreads);
-        console.log(threads);
       }
 
-      console.log(threadId);
       setIsChatLoading(false);
 
       setChatHistory([
