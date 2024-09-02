@@ -95,3 +95,13 @@ body, html {
     padding: 6px;
   }
 }
+
+/* タイプライター */
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+.animate-typewriter {
+  animation: typewriter 4s steps(40) 1s infinite;
+}

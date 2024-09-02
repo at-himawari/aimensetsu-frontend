@@ -5,15 +5,21 @@ import Header from "./img/header-wide.png";
 import { useNavigate } from "react-router-dom";
 
 function LoginForm({ setAuthTokens, setUser }) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const validEmail = validateMailAddress(email);
+    if (!validEmail) {
+      setErrorMessage("メールアドレスが不正です");
+      return;
+    }
     try {
-      const response = await axios.post("http://localhost:8000/api/token/", {
-        username,
+      const response = await axios.post(`${process.env.REACT_APP_BASE_URL}/api/token/`, {
+        username: email,
         password,
       });
       const { access, refresh } = response.data;
@@ -28,19 +34,32 @@ function LoginForm({ setAuthTokens, setUser }) {
     }
   };
 
+  const validateMailAddress = (mailAddress) => {
+    // メールアドレスのバリデーションチェック
+    const mailAddressPattern =
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return mailAddressPattern.test(mailAddress);
+  };
+
   return (
     <div>
       <header>
         <img src={Header} alt="header" />
       </header>
+      {errorMessage.length > 0 && (
+        <div>
+          <p>{errorMessage}</p>
+        </div>
+      )}
+
       <form className="flex flex-col mb-4" onSubmit={handleSubmit}>
         <div className="grid grid-cols-2  mx-auto">
-          <p className="text-gray-700 text-2xl">ユーザ名</p>
+          <p className="text-gray-700 text-2xl">メールアドレス</p>
           <input
             type="text"
             placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="border-b-2 border-gray-700 text-xl"
           />
 

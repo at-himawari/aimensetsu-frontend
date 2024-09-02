@@ -16,6 +16,8 @@ import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 // ゴミ箱アイコン
 import Trash from "./img/trash.svg";
+import api from "./api"; // 新しいaxiosインスタンスをインポート
+import logout from "./img/logout.svg";
 
 function ChatComponent({ authTokens, user, setIsError }) {
   const [searchWord, setSearchWord] = useState("");
@@ -25,6 +27,7 @@ function ChatComponent({ authTokens, user, setIsError }) {
   const [isSendButtonDisabled, setIsSendButtonDisabled] = useState(true);
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
+  const initialMessageRef = useRef(null);
   // スレッド一覧
   const [threads, setThreads] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // サイドバーの表示状態
@@ -40,6 +43,9 @@ function ChatComponent({ authTokens, user, setIsError }) {
   const [cookies, setCookie, removeCookie] = useCookies();
   // 初メッセージ
   const [initialMessage, setInitialMessage] = useState("");
+  // 新しいスレッドボタンの有効無効
+  const [isNewThreadButtonDisabled, setIsNewThreadButtonDisabled] =
+    useState(false);
   const navigate = useNavigate();
 
   // 初期メッセージの取得
@@ -51,19 +57,22 @@ function ChatComponent({ authTokens, user, setIsError }) {
     }
   };
 
+  // 初期メッセージまでスクロール
+  const scrollToInitialMessage = () => {
+    if (initialMessageRef.current) {
+      initialMessageRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   useEffect(() => {
     const fetchChatHistory = async () => {
       if (!threadId) return;
       try {
-        const response = await axios.get(
-          `http://localhost:8000/api/chat-history/?thread_id=${threadId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${authTokens.access}`,
-            },
-          }
+        const response = await api.get(
+          `${process.env.REACT_APP_BASE_URL}/api/chat-history/?thread_id=${threadId}`
         );
         setChatHistory(response.data || []);
+        console.log(response.data);
       } catch (error) {
         console.error("Error fetching chat history:", error);
         setIsError({
@@ -74,12 +83,11 @@ function ChatComponent({ authTokens, user, setIsError }) {
       }
     };
     fetchChatHistory();
-
-    // authtokenをCookieに保存
-    if (authTokens) {
-      setCookie("authTokens", authTokens, { path: "/" });
-    }
   }, [threadId, authTokens]);
+
+  useEffect(() => {
+    setCookie("authTokens", authTokens, { path: "/" });
+  }, [authTokens]);
 
   useEffect(() => {
     // チャット履歴の取得
@@ -90,46 +98,51 @@ function ChatComponent({ authTokens, user, setIsError }) {
     }
     setIsTextareaDisabled(false);
     setIsNewThreadCreated(true);
-    fetch(`http://localhost:8000/api/chat-history/?thread_id=${threadId}`, {
-      headers: {
-        Authorization: `Bearer ${authTokens.access}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => setChatHistory(data))
-      .catch((error) => {
-        console.error("Error:", error);
-        setIsError({
-          open: true,
-          message: "チャット履歴の取得に失敗しました。",
-        });
-        navigate("/error_modal");
+    try {
+      const fetch = async () => {
+        const response = await api.get(
+          `${process.env.REACT_APP_BASE_URL}/api/chat-history/?thread_id=${threadId}`
+        );
+        const data = response.data;
+        setChatHistory(data);
+      };
+      fetch();
+    } catch (error) {
+      console.error("Error fetching chat history:", error);
+      setIsError({
+        open: true,
+        message: "チャット履歴の取得に失敗しました。",
       });
+      navigate("/error_modal");
+    }
 
-
-
-    fetch(`http://localhost:8000/api/first-message/${threadId}/`, {
-      headers: {
-        Authorization: `Bearer ${authTokens.access}`,
-      },
-      method: "POST",
-    })
-      .then((response) => response.json())
-      .then((data) => setInitialMessage(data.response))
-      .catch((error) => {
-        console.error("Error fetching first message:", error);
-        setIsError({
-          open: true,
-          message: "初期メッセージの取得に失敗しました。",
-        });
-        navigate("/error_modal");
+    try {
+      const fetch = async () => {
+        const response = await api.post(
+          `${process.env.REACT_APP_BASE_URL}/api/first-message/${threadId}/`
+        );
+        const data = response.data;
+        setInitialMessage(data.response);
+      };
+      fetch();
+    } catch (error) {
+      console.error("Error fetching first message:", error);
+      setIsError({
+        open: true,
+        message: "初期メッセージの取得に失敗しました。",
       });
+      navigate("/error_modal");
+    }
   }, [threadId]);
 
   // 文字が追加されたら下までスクロール
   useEffect(() => {
     scrollToBottom();
   }, [chatHistory]);
+
+  useEffect(() => {
+    scrollToInitialMessage();
+  }, [initialMessage]);
 
   // メッセージが0件の場合、送信ボタンを無効にする
   useEffect(() => {
@@ -168,12 +181,8 @@ function ChatComponent({ authTokens, user, setIsError }) {
 
   const getAllThreads = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/all-threads/", {
-        headers: {
-          Authorization: `Bearer ${authTokens.access}`,
-        },
-      });
-      const data = await response.json();
+      const response = await api.get(`${process.env.REACT_APP_BASE_URL}/api/all-threads/`);
+      const data = await response.data;
       return data.threads;
     } catch (error) {
       console.error("Error fetching all threads:", error);
@@ -194,15 +203,8 @@ function ChatComponent({ authTokens, user, setIsError }) {
 
   const handleCreateNewThread = async () => {
     try {
-      const response = await axios.post(
-        "http://localhost:8000/api/new-thread/",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${authTokens.access}`,
-          },
-        }
-      );
+      setIsNewThreadButtonDisabled(true);
+      const response = await api.post(`${process.env.REACT_APP_BASE_URL}/api/new-thread/`);
       const newThreadId = response.data.thread_id;
       setInitialMessage(response.data.response);
       setThreadId(newThreadId); // 新しいスレッドIDを設定
@@ -214,6 +216,7 @@ function ChatComponent({ authTokens, user, setIsError }) {
       setIsNewThreadCreated(true);
       setIsTextareaFocused(true);
       closeSidebar();
+      setIsNewThreadButtonDisabled(false);
     } catch (error) {
       console.error("Error creating new thread:", error);
       setIsError({
@@ -249,11 +252,15 @@ function ChatComponent({ authTokens, user, setIsError }) {
     e.preventDefault();
     setIsChatLoading(true);
     clearInput();
-    if (searchWord.trim() === "") return; // 空のメッセージを送信しない
-    // チャット履歴がない場合、要約タイトルを取得
 
+    if (searchWord.trim() === "") return; // 空のメッセージを送信しない
+
+    // 一時的なメッセージを表示
+    setChatHistory([...chatHistory, { sender: "USER", message: searchWord }]);
+
+    // チャット履歴がない場合、要約タイトルを取得
     try {
-      const response = await fetch("http://localhost:8000/api/openai/", {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/openai/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -270,12 +277,12 @@ function ChatComponent({ authTokens, user, setIsError }) {
 
       setIsChatLoading(false);
 
+      // 全体のメッセージを表示
+      // USERを消すと、AIメッセージで上書きされてしまう。
       setChatHistory([
         ...chatHistory,
-        {
-          user_input: searchWord,
-          ai_response: data?.response || "エラーが発生しました。",
-        },
+        { sender: "USER", message: searchWord },
+        { sender: "AI", message: data.response },
       ]);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -322,15 +329,9 @@ function ChatComponent({ authTokens, user, setIsError }) {
 
   const handleDelete = async (threadId) => {
     try {
-      await axios.delete(
-        `http://localhost:8000/api/delete-thread/${threadId}/`,
-        {
-          headers: {
-            Authorization: `Bearer ${authTokens.access}`,
-          },
-        }
-      );
+      await api.delete(`${process.env.REACT_APP_BASE_URL}/api/delete-thread/${threadId}/`);
       const allThreads = await getAllThreads();
+      setChatHistory([]);
       setThreads(allThreads);
     } catch (error) {
       console.error("Error deleting thread:", error);
@@ -363,11 +364,30 @@ function ChatComponent({ authTokens, user, setIsError }) {
     return `${year}/${month}/${day} ${hour}:${minute}:${second}`;
   };
 
+  const handleLogout = async () => {
+    try {
+      await api.post(`${process.env.REACT_APP_BASE_URL}/api/logout/`, {
+        refresh_token: authTokens.refresh,
+      });
+    } catch (e) {
+      console.error("ログアウトに失敗しました");
+    }
+
+    setCookie("authTokens", null, "/");
+    navigate("/");
+  };
+
   return (
     <div className="App">
       <header className="w-full">
         <img src={HeaderWide} alt="header w-full md:h-auto sm:h-[80px]" />
       </header>
+      <div className="flex">
+        <div className="flex text-xl font-bold ml-auto">
+          <img width={20} src={logout} alt="logoutbutton" />
+          <button onClick={handleLogout}>ログアウト</button>
+        </div>
+      </div>
 
       <div className="chat-container flex -z-1">
         <div className="flex">
@@ -400,6 +420,7 @@ function ChatComponent({ authTokens, user, setIsError }) {
                   <li>
                     <button
                       onClick={handleCreateNewThread}
+                      disabled={isNewThreadButtonDisabled}
                       className="block hover:bg-gray-400 hover:scale-105 mb-4 p-2 w-full text-gray-700 bg-gray-200 rounded"
                     >
                       + 新しい面接官と話す
@@ -453,7 +474,6 @@ function ChatComponent({ authTokens, user, setIsError }) {
                   <div className="flex flex-col items-center">
                     <div
                       onClick={handleCreateNewThread}
-                      autoFocus={isTextareaFocused}
                       className="w-50 h-50 bg-white rounded-lg shadow-lg p-4"
                     >
                       <h2 className="text-xl font-bold">新しい面接官と話す</h2>
@@ -463,7 +483,7 @@ function ChatComponent({ authTokens, user, setIsError }) {
                 </div>
               )}
             {!isTextareaDisabled && threads.length !== 0 && (
-              <div>
+              <div ref={initialMessageRef}>
                 <div className="flex items-start">
                   {/** AIのイラスト */}
                   <AiIcon />
@@ -475,26 +495,40 @@ function ChatComponent({ authTokens, user, setIsError }) {
 
             {Array.isArray(chatHistory) &&
               chatHistory.map((chat, index) => (
-                <div key={index}>
-                  <div className="flex justify-end my-5">
-                    <div className="justify-end flex rounded-3xl bg-[#f4f4f4] px-5 py-5 max-w-[70%]">
-                      {chat.user_input}
+                <div key={"USER" + index}>
+                  {/** ユーザーのメッセージ表示 */}
+                  {chat.sender === "USER" && (
+                    <div className="flex justify-end my-5">
+                      <div className="justify-end flex rounded-3xl bg-[#f4f4f4] px-5 py-5 max-w-[70%]">
+                        {chat.message}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-start">
-                    {/** AIのイラスト */}
-                    <AiIcon />
+                  )}
+                  {/** AIの回答表示 */}
+                  {chat.sender === "AI" && (
+                    <div key={"AI" + index} className="flex items-start">
+                      {/** AIのイラスト */}
+                      <AiIcon />
 
-                    <div
-                      className="flex-1"
-                      dangerouslySetInnerHTML={{
-                        __html: marked(
-                          chat?.ai_response || "...",
-                          markedOptions
-                        ),
-                      }}
-                    ></div>
-                  </div>
+                      <div
+                        id={chat?.id}
+                        className="flex-1 "
+                        dangerouslySetInnerHTML={{
+                          __html: marked(
+                            chat?.message || "エラーが発生しました",
+                            markedOptions
+                          ),
+                        }}
+                      ></div>
+                    </div>
+                  )}
+                  {chat.sender === "AI" && !chat.message && (
+                    <div key={index} className="flex items-start">
+                      {/** AIのイラスト */}
+                      <AiIcon />
+                      <div>ろーでぃんぐ</div>
+                    </div>
+                  )}
                 </div>
               ))}
           </div>
@@ -517,6 +551,7 @@ function ChatComponent({ authTokens, user, setIsError }) {
             ref={textareaRef}
             style={{ overflow: "hidden" }}
             disabled={isTextareaDisabled}
+            autoFocus={isTextareaFocused}
           />
           <button
             disabled={isSendButtonDisabled}

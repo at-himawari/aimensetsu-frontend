@@ -1,4 +1,9 @@
 import React from "react";
+if (window.location.pathname === "/error_modal") {
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 3 * 1000);
+  }
 
 const Modal = ({ open, onCancel, onOk,message }) => {
   return open ? (
@@ -21,7 +26,7 @@ const Modal = ({ open, onCancel, onOk,message }) => {
       ></div>
     </>
   ) : (
-    <></>
+    <>3秒後にログインページに戻ります</>
   );
 };
 export default Modal;
