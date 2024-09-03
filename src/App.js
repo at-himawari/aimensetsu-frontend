@@ -11,8 +11,8 @@ function App() {
   const [authTokens, setAuthTokens] = useState(null);
   const [user, setUser] = useState(null);
   const [isError, setIsError] = useState({ open: false, message: "" });
-  const [isLogin, setIsLogin] = useState(false);
-  const [cookies, setCookie, removeCookie] = useCookies();
+  const [, setIsLogin] = useState(false);
+  const [cookies, , ] = useCookies();
   const navigate = useNavigate();
 
   // ログイン状態の初期化

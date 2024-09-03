@@ -37,9 +37,9 @@ function ChatComponent({ authTokens, user, setIsError }) {
   // textareaのフォーカス状態
   const [isTextareaFocused, setIsTextareaFocused] = useState(false);
   // AIチャットローディング状態
-  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [, setIsChatLoading] = useState(false);
   // Cookieの読み込み
-  const [cookies, setCookie, removeCookie] = useCookies();
+  const [, setCookie, ] = useCookies();
   // 初メッセージ
   const [initialMessage, setInitialMessage] = useState("");
   // 新しいスレッドボタンの有効無効

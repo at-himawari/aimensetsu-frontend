@@ -30,7 +30,7 @@ function LoginForm({ setAuthTokens, setUser }) {
       navigate("/chat");
     } catch (error) {
       setAuthTokens(null);
-      console.error("Login failed:", error);
+      console.error(error);
     }
   };
 
