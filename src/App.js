@@ -10,7 +10,6 @@ import { useNavigate } from "react-router-dom";
 function App() {
   const [authTokens, setAuthTokens] = useState(null);
   const [user, setUser] = useState(null);
-  const [showRegister, setShowRegister] = useState(false);
   const [isError, setIsError] = useState({ open: false, message: "" });
   const [isLogin, setIsLogin] = useState(false);
   const [cookies, setCookie, removeCookie] = useCookies();
