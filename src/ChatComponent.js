@@ -13,12 +13,13 @@ import { ReactComponent as SendIcon } from "./img/send-icon.svg";
 import HeaderWide from "./img/header-wide.png"; // 画像のパスを指定
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
+import { fetchAuthSession, signOut } from "@aws-amplify/auth";
 // ゴミ箱アイコン
 import Trash from "./img/trash.svg";
 import api from "./api"; // 新しいaxiosインスタンスをインポート
 import logout from "./img/logout.svg";
 
-function ChatComponent({ authTokens, user, setIsError }) {
+function ChatComponent({ authTokens, setIsError }) {
   const [searchWord, setSearchWord] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const [threadId, setThreadId] = useState(null); // スレッドIDの管理
@@ -39,7 +40,7 @@ function ChatComponent({ authTokens, user, setIsError }) {
   // AIチャットローディング状態
   const [, setIsChatLoading] = useState(false);
   // Cookieの読み込み
-  const [, setCookie, ] = useCookies();
+  const [, setCookie] = useCookies();
   // 初メッセージ
   const [initialMessage, setInitialMessage] = useState("");
   // 新しいスレッドボタンの有効無効
@@ -71,7 +72,6 @@ function ChatComponent({ authTokens, user, setIsError }) {
           `${process.env.REACT_APP_BASE_URL}/api/chat-history/?thread_id=${threadId}`
         );
         setChatHistory(response.data || []);
-        console.log(response.data);
       } catch (error) {
         console.error("Error fetching chat history:", error);
         setIsError({
@@ -162,17 +162,18 @@ function ChatComponent({ authTokens, user, setIsError }) {
 
   // テキストエリアの高さを自動調整
   useEffect(() => {
-    if (textareaRef.current) {
+    const textarea = textareaRef.current;
+    if (textarea !== null) {
       const handleTextareaInput = () => {
-        textareaRef.current.style.height = "auto";
-        textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+        textarea.style.height = "auto";
+        textarea.style.height = `${textarea.scrollHeight}px`;
       };
 
-      textareaRef.current.addEventListener("input", handleTextareaInput);
+      textarea.addEventListener("input", handleTextareaInput);
 
       return () => {
-        if (textareaRef.current) {
-          textareaRef.current.removeEventListener("input", handleTextareaInput);
+        if (textarea) {
+          textarea.removeEventListener("input", handleTextareaInput);
         }
       };
     }
@@ -180,7 +181,9 @@ function ChatComponent({ authTokens, user, setIsError }) {
 
   const getAllThreads = async () => {
     try {
-      const response = await api.get(`${process.env.REACT_APP_BASE_URL}/api/all-threads/`);
+      const response = await api.get(
+        `${process.env.REACT_APP_BASE_URL}/api/all-threads/`
+      );
       const data = await response.data;
       return data.threads;
     } catch (error) {
@@ -190,7 +193,6 @@ function ChatComponent({ authTokens, user, setIsError }) {
     }
   };
 
-  // 使用例
   useEffect(() => {
     const fetchAllThreads = async () => {
       const threads = await getAllThreads();
@@ -203,7 +205,9 @@ function ChatComponent({ authTokens, user, setIsError }) {
   const handleCreateNewThread = async () => {
     try {
       setIsNewThreadButtonDisabled(true);
-      const response = await api.post(`${process.env.REACT_APP_BASE_URL}/api/new-thread/`);
+      const response = await api.post(
+        `${process.env.REACT_APP_BASE_URL}/api/new-thread/`
+      );
       const newThreadId = response.data.thread_id;
       setInitialMessage(response.data.response);
       setThreadId(newThreadId); // 新しいスレッドIDを設定
@@ -259,14 +263,24 @@ function ChatComponent({ authTokens, user, setIsError }) {
 
     // チャット履歴がない場合、要約タイトルを取得
     try {
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/openai/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authTokens.access}`,
-        },
-        body: JSON.stringify({ search_word: searchWord, thread_id: threadId }),
-      });
+      const accessToken = (
+        await fetchAuthSession()
+      ).tokens.accessToken.toString();
+      
+      const response = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/api/openai/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${authTokens}`,
+          },
+          body: JSON.stringify({
+            search_word: searchWord,
+            thread_id: threadId,
+          }),
+        }
+      );
       const data = await response.json();
       if (chatHistory.length === 0) {
         // スレッド履歴を取得して、スレッドを更新
@@ -289,21 +303,6 @@ function ChatComponent({ authTokens, user, setIsError }) {
       navigate("/error_modal");
     }
   };
-
-  // textareaの高さを自動調整
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    const handleTextareaInput = () => {
-      textarea.style.height = "auto";
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    };
-
-    textarea.addEventListener("input", handleTextareaInput);
-
-    return () => {
-      textarea.removeEventListener("input", handleTextareaInput);
-    };
-  }, []);
 
   const handleThreadClick = (threadId) => {
     setThreadId(threadId);
@@ -328,7 +327,9 @@ function ChatComponent({ authTokens, user, setIsError }) {
 
   const handleDelete = async (threadId) => {
     try {
-      await api.delete(`${process.env.REACT_APP_BASE_URL}/api/delete-thread/${threadId}/`);
+      await api.delete(
+        `${process.env.REACT_APP_BASE_URL}/api/delete-thread/${threadId}/`
+      );
       const allThreads = await getAllThreads();
       setChatHistory([]);
       setThreads(allThreads);
@@ -365,10 +366,13 @@ function ChatComponent({ authTokens, user, setIsError }) {
 
   const handleLogout = async () => {
     try {
-      await api.post(`${process.env.REACT_APP_BASE_URL}/api/logout/`, {
-        refresh_token: authTokens.refresh,
-      });
+      // ログアウトする
+      const idToken = (await fetchAuthSession()).tokens.idToken;
+      if (idToken) {
+        await signOut();
+      }
     } catch (e) {
+      console.error(e);
       console.error("ログアウトに失敗しました");
     }
 

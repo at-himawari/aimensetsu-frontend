@@ -3,12 +3,15 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import Header from "./img/header-wide.png";
 import { useNavigate } from "react-router-dom";
+import { signIn, fetchAuthSession, signOut } from "@aws-amplify/auth";
 
-function LoginForm({ setAuthTokens, setUser }) {
+function LoginForm({ setAuthTokens, username, setUsername }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
+  const NEXT_STEP_CONFIRM = "CONFIRM_SIGN_UP";
+  const INCORRECT_LOGIN = "Incorrect username or password.";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,19 +21,37 @@ function LoginForm({ setAuthTokens, setUser }) {
       return;
     }
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BASE_URL}/api/token/`, {
+      // 事前のセッションが残っていればログアウトする
+      const idToken = (await fetchAuthSession()).tokens?.idToken;
+      if (idToken) {
+        await signOut();
+      }
+
+      const user = await signIn({
         username: email,
-        password,
+        password: password,
       });
-      const { access, refresh } = response.data;
-      setAuthTokens({ access, refresh });
-      const decoded = jwtDecode(access);
-      setUser({ username: decoded.username });
+
+      const authTokens = (
+        await fetchAuthSession()
+      ).tokens.idToken.toString();
+
+
+      setAuthTokens(authTokens);
+
+      if (user.nextStep.signInStep === NEXT_STEP_CONFIRM) {
+        setUsername(email);
+        navigate("/confirm");
+        return;
+      }
       // /chatへ移動
       navigate("/chat");
     } catch (error) {
       setAuthTokens(null);
-      console.error(error);
+      if (error.message === INCORRECT_LOGIN) {
+        setErrorMessage("メールアドレスまたはパスワードが違います。");
+      }
+      console.error(error.message);
     }
   };
 
@@ -48,7 +69,7 @@ function LoginForm({ setAuthTokens, setUser }) {
       </header>
       {errorMessage.length > 0 && (
         <div>
-          <p>{errorMessage}</p>
+          <p className="text-red-600 mb-1">{errorMessage}</p>
         </div>
       )}
 

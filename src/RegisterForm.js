@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { signUp } from "aws-amplify/auth";
 
-function RegisterForm() {
-  const [username, setUsername] = useState("");
+function RegisterForm({ setUsername, username }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState({
     username: [],
@@ -20,7 +19,8 @@ function RegisterForm() {
       /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return mailAddressPattern.test(mailAddress);
   };
-  const UNEXPECTED_ERROR = "原因不明のエラーが発生しました。"
+  const UNEXPECTED_ERROR = "原因不明のエラーが発生しました。";
+  const USER_ALREADY_EXISTS_MESSAGE = "User already exists";
 
   const pushError = (errorMessage) => {
     if ("username" in errorMessage) {
@@ -40,6 +40,13 @@ function RegisterForm() {
         username: [UNEXPECTED_ERROR],
       });
     }
+  };
+
+  const clearError = () => {
+    setError({
+      username: [],
+      password: [],
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -65,26 +72,21 @@ function RegisterForm() {
       return;
     }
     try {
-      const response = await axios.post(`${process.env.REACT_APP_BASE_URL}/api/register/`, {
-        username,
-        password,
+      const { isSignUpComplete, userId, nextStep } = await signUp({
+        username: username,
+        password: password,
       });
-      if (response.status !== 201) {
-        throw Error(UNEXPECTED_ERROR);
-      }
-
+      
       setSuccess(true);
       setError("");
-      console.log(response);
-
-      navigate("/");
+      navigate("/confirm");
+      return;
     } catch (error) {
-      if (error.response.data) {
-        pushError(error.response.data);
-      } else {
-        pushError({ username:[UNEXPECTED_ERROR] });
+      if (error.message === USER_ALREADY_EXISTS_MESSAGE) {
+        pushError({ username: ["同じユーザが既に存在します"] });
       }
       setSuccess(false);
+      console.error(error);
     }
   };
 
@@ -95,7 +97,10 @@ function RegisterForm() {
   };
 
   // 成功したらログインする
-  useEffect(() => {});
+  useEffect(() => {
+    setUsername("");
+    clearError();
+  }, []);
 
   return (
     <div className="register-container m-6">
