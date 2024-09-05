@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { confirmSignUp } from "aws-amplify/auth";
+import { confirmSignUp,resendSignUpCode } from "aws-amplify/auth";
 
 function RegisterCofirmForm({ username }) {
   const [confirmationCode, setConfirmationCode] = useState("");
@@ -12,8 +12,8 @@ function RegisterCofirmForm({ username }) {
   // パスワード確認用のstateを追加
   const navigate = useNavigate();
   const INVALID_CODE = "Invalid verification code provided, please try again.";
-
   const UNEXPECTED_ERROR = "原因不明のエラーが発生しました。";
+  const RESEND_MAIL = "確認コードを再送信しました。"
 
   const pushError = (errorMessage) => {
     if ("username" in errorMessage) {
@@ -62,9 +62,17 @@ function RegisterCofirmForm({ username }) {
   };
 
   // 戻るボタンを押した時の処理
-  const handleReturnButton = (e) => {
+  const handleResendButton = async (e) => {
     e.preventDefault();
-    navigate("/");
+    const {
+      destination,
+      deliveryMedium,
+      attributeName
+    } = await resendSignUpCode({ username });
+
+    pushError({username:[RESEND_MAIL]})
+
+    // navigate("/");
   };
 
   return (
@@ -102,9 +110,9 @@ function RegisterCofirmForm({ username }) {
           </button>
           <button
             className="p-2 text-white bg-blue-500 rounded ml-1"
-            onClick={(e) => handleReturnButton(e)}
+            onClick={(e) => handleResendButton(e)}
           >
-            戻る
+            確認コードを再送する
           </button>
         </div>
       </form>
