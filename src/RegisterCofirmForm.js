@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { confirmSignUp } from 'aws-amplify/auth';
+import { confirmSignUp } from "aws-amplify/auth";
 
 function RegisterCofirmForm({ username }) {
   const [confirmationCode, setConfirmationCode] = useState("");
@@ -8,7 +8,7 @@ function RegisterCofirmForm({ username }) {
     username: [],
     password: [],
   });
-    const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState(false);
   // パスワード確認用のstateを追加
   const navigate = useNavigate();
   const INVALID_CODE = "Invalid verification code provided, please try again.";
@@ -41,7 +41,7 @@ function RegisterCofirmForm({ username }) {
     try {
       const { isSignUpComplete, userId, nextStep } = await confirmSignUp({
         username: username,
-        confirmationCode: confirmationCode
+        confirmationCode: confirmationCode,
       });
 
       if (!isSignUpComplete) {
@@ -53,11 +53,10 @@ function RegisterCofirmForm({ username }) {
 
       navigate("/");
     } catch (error) {
-        if (error.message === INVALID_CODE) {
-            pushError({password:["確認コードが間違っています"]})
-          
+      if (error.message === INVALID_CODE) {
+        pushError({ password: ["確認コードが間違っています"] });
       }
-        
+
       setSuccess(false);
     }
   };
@@ -68,13 +67,12 @@ function RegisterCofirmForm({ username }) {
     navigate("/");
   };
 
-
   return (
     <div className="register-container m-6">
       <h2 className="text-2xl font-bold mb-4">ユーザー登録</h2>
-      {success && (
-        <p className="text-green-500">ユーザー登録に成功しました。</p>
-      )}
+      <p className="mb-5">
+        あなたのメールアドレスに確認コードを送付しました。確認コードを入力してください。
+      </p>
       {error.username.length > 0 && (
         <p className="text-red-600 mb-1">{error.username.join(",")}</p>
       )}
