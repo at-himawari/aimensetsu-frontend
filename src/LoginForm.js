@@ -1,6 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
-import { jwtDecode } from "jwt-decode";
 import Header from "./img/header-wide.png";
 import { useNavigate } from "react-router-dom";
 import { signIn, fetchAuthSession, signOut } from "@aws-amplify/auth";
