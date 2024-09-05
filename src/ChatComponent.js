@@ -205,6 +205,9 @@ function ChatComponent({ authTokens, setIsError }) {
 
   const handleCreateNewThread = async () => {
     try {
+      if (isNewThreadButtonDisabled) {
+        return;
+      }
       setIsNewThreadButtonDisabled(true);
       const response = await api.post(
         `${process.env.REACT_APP_BASE_URL}/api/new-thread/`
