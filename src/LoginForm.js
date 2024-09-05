@@ -32,18 +32,17 @@ function LoginForm({ setAuthTokens, username, setUsername }) {
         password: password,
       });
 
-      const authTokens = (
-        await fetchAuthSession()
-      ).tokens.idToken.toString();
-
-
-      setAuthTokens(authTokens);
-
+      // 確認コード送信前なら、確認コード送信画面に転送する
       if (user.nextStep.signInStep === NEXT_STEP_CONFIRM) {
         setUsername(email);
         navigate("/confirm");
         return;
       }
+
+      const authTokens = (await fetchAuthSession()).tokens.idToken.toString();
+
+      setAuthTokens(authTokens);
+
       // /chatへ移動
       navigate("/chat");
     } catch (error) {
