@@ -77,7 +77,7 @@ function LoginForm({ setAuthTokens, username, setUsername }) {
           <p className="text-gray-700 text-2xl">メールアドレス</p>
           <input
             type="text"
-            placeholder="Username"
+            placeholder="Mail Address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="border-b-2 border-gray-700 text-xl"
