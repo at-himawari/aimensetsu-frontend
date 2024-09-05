@@ -263,9 +263,6 @@ function ChatComponent({ authTokens, setIsError }) {
 
     // チャット履歴がない場合、要約タイトルを取得
     try {
-      const accessToken = (
-        await fetchAuthSession()
-      ).tokens.accessToken.toString();
       
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/api/openai/`,
@@ -407,7 +404,7 @@ function ChatComponent({ authTokens, setIsError }) {
 
             {/* サイドバー */}
             <div
-              className={`z-10 fixed top-0 left-0 w-64 h-full bg-white transition-transform transform ${
+              className={`z-10 fixed top-0 left-0 w-64 h-full bg-gray-400 transition-transform transform ${
                 isSidebarOpen ? "translate-x-0" : "-translate-x-full"
               } md:translate-x-0 md:relative md:w-64 md:h-auto md:bg-transparent z-50`}
             >
