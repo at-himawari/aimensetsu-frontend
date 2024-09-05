@@ -18,6 +18,7 @@ import { fetchAuthSession, signOut } from "@aws-amplify/auth";
 import Trash from "./img/trash.svg";
 import api from "./api"; // 新しいaxiosインスタンスをインポート
 import logout from "./img/logout.svg";
+import "./LoadingButton.css"; // スピナー用のCSS
 
 function ChatComponent({ authTokens, setIsError }) {
   const [searchWord, setSearchWord] = useState("");
@@ -263,7 +264,6 @@ function ChatComponent({ authTokens, setIsError }) {
 
     // チャット履歴がない場合、要約タイトルを取得
     try {
-      
       const response = await fetch(
         `${process.env.REACT_APP_BASE_URL}/api/openai/`,
         {
@@ -324,10 +324,31 @@ function ChatComponent({ authTokens, setIsError }) {
 
   const handleDelete = async (threadId) => {
     try {
+      // 対象ボタンを無効化
+      document.getElementById("delete-button-" + threadId).disabled = true;
+      document.getElementById("thread-" + threadId).disabled = true;
+      // 対象ボタンをグレーアウト
+      const grayFilter =
+        "invert(50%) sepia(0%) saturate(11%) hue-rotate(143deg) brightness(101%) contrast(93%)";
+      // document.getElementById("delete-img-" + threadId).style.filter =
+      //   grayFilter;
+      document.getElementById("delete-img-" + threadId).innerHTML = `
+  <div class="mr-2 sk-chase-20">
+    <div class="sk-chase-dot"></div>
+    <div class="sk-chase-dot"></div>
+    <div class="sk-chase-dot"></div>
+    <div class="sk-chase-dot"></div>
+    <div class="sk-chase-dot"></div>
+    <div class="sk-chase-dot"></div>
+  </div>
+`;
+      document.getElementById("thread-" + threadId).style.filter = grayFilter;
+
       await api.delete(
         `${process.env.REACT_APP_BASE_URL}/api/delete-thread/${threadId}/`
       );
       const allThreads = await getAllThreads();
+
       setChatHistory([]);
       setThreads(allThreads);
     } catch (error) {
@@ -423,35 +444,47 @@ function ChatComponent({ authTokens, setIsError }) {
                       disabled={isNewThreadButtonDisabled}
                       className="block hover:bg-gray-400 hover:scale-105 mb-4 p-2 w-full text-gray-700 bg-gray-200 rounded"
                     >
-                      + 新しい面接官と話す
+                      {isNewThreadButtonDisabled ? (
+                        <div className="mx-auto sk-chase">
+                          <div className="sk-chase-dot"></div>
+                          <div className="sk-chase-dot"></div>
+                          <div className="sk-chase-dot"></div>
+                          <div className="sk-chase-dot"></div>
+                          <div className="sk-chase-dot"></div>
+                          <div className="sk-chase-dot"></div>
+                        </div>
+                      ) : (
+                        "+ 新しい面接官と話す"
+                      )}
                     </button>
                   </li>
                   <p className="border-b-2"></p>
                   <p className="text-gray-700 font-bold text-xl">面接履歴</p>
                   {Array.isArray(threads) &&
-                    threads
-                      .slice()
-                      .reverse()
-                      .map((thread) => (
-                        <li key={thread.thread_id}>
-                          <div className="flex">
-                            {formatDate(thread.created_at)}
-                            <button
-                              onClick={() => handleDelete(thread.thread_id)}
-                            >
-                              <img src={Trash} alt="trash" />
-                            </button>
-                          </div>
-
+                    threads.slice().map((thread) => (
+                      <li key={"list-" + thread.thread_id}>
+                        <div className="flex">
+                          {formatDate(thread.created_at)}
                           <button
-                            onClick={() => handleThreadClick(thread.thread_id)}
-                            className="block truncate text-sm hover:bg-gray-400 hover:scale-105 overflow-hidden whitespace-nowrap max-w-xs py-100 w-full h-[64px] text-gray-700 bg-gray-200 rounded"
+                            id={"delete-button-" + thread.thread_id}
+                            onClick={() => handleDelete(thread.thread_id)}
                           >
-                            {getThreadSummary(thread)}
+                            <span id={"delete-img-" + thread.thread_id}>
+                              <img src={Trash} alt="trash" />
+                            </span>
                           </button>
-                          <button className="hidden hover:display">aaa</button>
-                        </li>
-                      ))}
+                        </div>
+
+                        <button
+                          id={"thread-" + thread.thread_id}
+                          onClick={() => handleThreadClick(thread.thread_id)}
+                          className="block truncate text-sm hover:bg-gray-400 hover:scale-105 overflow-hidden whitespace-nowrap max-w-xs py-100 w-full h-[64px] text-gray-700 bg-gray-200 rounded"
+                        >
+                          {getThreadSummary(thread)}
+                        </button>
+                        <button className="hidden hover:display">aaa</button>
+                      </li>
+                    ))}
                 </ul>
               </div>
             </div>
@@ -520,13 +553,6 @@ function ChatComponent({ authTokens, setIsError }) {
                           ),
                         }}
                       ></div>
-                    </div>
-                  )}
-                  {chat.sender === "AI" && !chat.message && (
-                    <div key={index} className="flex items-start">
-                      {/** AIのイラスト */}
-                      <AiIcon />
-                      <div>ろーでぃんぐ</div>
                     </div>
                   )}
                 </div>
