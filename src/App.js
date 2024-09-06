@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import LoginForm from "./LoginForm";
 import ChatComponent from "./ChatComponent";
 import RegisterForm from "./RegisterForm";
-import RegisterConfirmForm from "./RegisterCofirmForm";
+import RegisterConfirmForm from "./RegisterConfirmationForm";
 import ErrorModal from "./ErrorModal";
 import { useCookies } from "react-cookie";
 import { Route, Routes } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import ResetPasswordForm from "./ResetPasswordForm";
 
 
 
@@ -32,6 +33,7 @@ function App() {
   return (
     <div className="App">
       <Routes>
+        <Route path="/resetpassword" element={<ResetPasswordForm/>} />
         <Route path="/register" element={<RegisterForm setUsername={setUsername} username={username} />} />
         <Route path="/confirm" element={<RegisterConfirmForm username={username}/>} />
         <Route 

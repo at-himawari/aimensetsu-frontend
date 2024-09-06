@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { confirmSignUp,resendSignUpCode } from "aws-amplify/auth";
 
-function RegisterCofirmForm({ username }) {
+function RegisterConfirmationForm({ username }) {
   const [confirmationCode, setConfirmationCode] = useState("");
+  const [isResendButtonDisabled, setIsResendButtonDisabled] = useState(false);
   const [error, setError] = useState({
     username: [],
     password: [],
   });
-  const [success, setSuccess] = useState(false);
   // パスワード確認用のstateを追加
   const navigate = useNavigate();
   const INVALID_CODE = "Invalid verification code provided, please try again.";
@@ -48,7 +48,6 @@ function RegisterCofirmForm({ username }) {
         throw Error(UNEXPECTED_ERROR);
       }
 
-      setSuccess(true);
       setError("");
 
       navigate("/");
@@ -57,7 +56,6 @@ function RegisterCofirmForm({ username }) {
         pushError({ password: ["確認コードが間違っています"] });
       }
 
-      setSuccess(false);
     }
   };
 
@@ -70,9 +68,15 @@ function RegisterCofirmForm({ username }) {
       attributeName
     } = await resendSignUpCode({ username });
 
-    pushError({username:[RESEND_MAIL]})
+    pushError({ username: [RESEND_MAIL] })
+    
+    setIsResendButtonDisabled(true);
 
-    // navigate("/");
+    // 1分間のタイムラグ
+    const timeOut = 60 * 1000;
+    setTimeout(() => {
+      setIsResendButtonDisabled(false);
+    }, timeOut);
   };
 
   return (
@@ -109,6 +113,7 @@ function RegisterCofirmForm({ username }) {
             登録
           </button>
           <button
+            isResendButtonDisabled={isResendButtonDisabled}
             className="p-2 text-white bg-blue-500 rounded ml-1"
             onClick={(e) => handleResendButton(e)}
           >
@@ -120,4 +125,4 @@ function RegisterCofirmForm({ username }) {
   );
 }
 
-export default RegisterCofirmForm;
+export default RegisterConfirmationForm;

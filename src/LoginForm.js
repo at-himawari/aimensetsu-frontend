@@ -59,6 +59,16 @@ function LoginForm({ setAuthTokens, username, setUsername }) {
     return mailAddressPattern.test(mailAddress);
   };
 
+  const handleRestPassword = (e) => {
+    e.preventDefault();
+    navigate("/resetpassword");
+  };
+
+  const handleInTrouble = (e) => {
+    e.preventDefault();
+    window.location.replace(process.env.REACT_APP_INTROUBLE_LINK);
+  };
+
   return (
     <div>
       <header>
@@ -91,20 +101,36 @@ function LoginForm({ setAuthTokens, username, setUsername }) {
           />
         </div>
         <div className="m-4 mx-auto">
-          <div className="md:grid md:gap-0 md:grid-cols-2">
+          <div className="grid gap-0 md:grid-cols-2">
             <button
-              className="mt-4 mr-1 text-sm  p-2 bg-blue-600 text-white rounded hover:bg-blue-500"
+              className="w-full mt-4 md:mr-1 text-sm  p-2 bg-blue-600 text-white rounded hover:bg-blue-500"
               type="submit"
             >
               ログイン
             </button>
             <button
-              className="mt-4 ml-1 text-sm  p-2 bg-blue-600 text-white rounded hover:bg-blue-500"
+              className="w-full mt-4 md:ml-1 text-sm  p-2 bg-blue-600 text-white rounded hover:bg-blue-500"
               onClick={(e) => {
                 navigate("/register");
               }}
             >
               新規登録
+            </button>
+          </div>
+          <div className="mt-5">
+            <button
+              onClick={handleRestPassword}
+              className="no-underline hover:underline"
+            >
+              パスワードをお忘れですか？
+            </button>
+          </div>
+          <div>
+            <button
+              onClick={handleInTrouble}
+              className="no-underline hover:underline"
+            >
+              その他お困りのことがありますか？
             </button>
           </div>
         </div>
