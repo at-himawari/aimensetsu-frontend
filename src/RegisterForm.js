@@ -76,7 +76,7 @@ function RegisterForm({ setUsername, username }) {
         username: username,
         password: password,
       });
-      
+
       setSuccess(true);
       setError("");
       navigate("/confirm");
@@ -104,7 +104,7 @@ function RegisterForm({ setUsername, username }) {
 
   return (
     <div className="register-container m-6">
-      <h2 className="text-2xl font-bold mb-4">ユーザー登録</h2>
+      <h2 className="text-2xl font-bold mb-4 bg-gray-200 p-3">ユーザー登録</h2>
       {success && (
         <p className="text-green-500">ユーザー登録に成功しました。</p>
       )}
@@ -114,12 +114,17 @@ function RegisterForm({ setUsername, username }) {
       {error.password.length > 0 && (
         <p className="text-red-600 mb-1">{error.password.join(",")}</p>
       )}
+      <div className="mb-5">
+        <p>
+          新規ユーザ登録を行います。メールアドレスとパスワードを入力してください。
+        </p>
+      </div>
       <form onSubmit={handleSubmit} className="register-form">
         <div className="grid grid-cols-2 gap-4">
-          <p>Email</p>
+          <p>メールアドレス</p>
           <input
             type="text"
-            placeholder="ユーザー名"
+            placeholder="メールアドレス"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             className="mb-4 p-2 border border-gray-300 rounded"
