@@ -21,6 +21,18 @@ function RegisterForm({ setUsername, username }) {
   };
   const UNEXPECTED_ERROR = "原因不明のエラーが発生しました。";
   const USER_ALREADY_EXISTS_MESSAGE = "User already exists";
+  const PASSWORD_NOT_LONG_ENOUGH =
+    "Password did not conform with policy: Password not long enough";
+  const PASSWORD_MUST_HAVE_UPPERCASE_CHARACTERS =
+    "Password did not conform with policy: Password must have uppercase characters";
+  const PASSWORD_MUSH_HAVE_NUMERIC_CHARACTERS =
+    "Password did not conform with policy: Password must have numeric characters";
+
+  const PASSWORD_MUSH_HAVE_LOWERCASE_CHARACTERS =
+    "Password did not conform with policy: Password must have lowercase characters";
+
+  const PASSWORD_MUST_HAVE_SYMBOL_CHARACTERS =
+    "Password did not conform with policy: Password must have symbol characters";
 
   const pushError = (errorMessage) => {
     if ("username" in errorMessage) {
@@ -85,8 +97,38 @@ function RegisterForm({ setUsername, username }) {
       if (error.message === USER_ALREADY_EXISTS_MESSAGE) {
         pushError({ username: ["同じユーザが既に存在します"] });
       }
+      if (error.message === PASSWORD_NOT_LONG_ENOUGH) {
+        pushError({
+          password: ["パスワードの長さは8文字以上に設定してください"],
+        });
+      }
+      if (error.message === PASSWORD_MUST_HAVE_UPPERCASE_CHARACTERS) {
+        pushError({
+          password: ["パスワードには英大文字を含めてください"],
+        });
+      }
+
+      if (error.message === PASSWORD_MUSH_HAVE_NUMERIC_CHARACTERS) {
+        pushError({
+          password: ["パスワードには数字を含めてください"],
+        });
+      }
+
+      if (error.message === PASSWORD_MUSH_HAVE_LOWERCASE_CHARACTERS) {
+        pushError({
+          password: ["パスワードには英小文字を含めてください"],
+        });
+      }
+
+      if (error.message === PASSWORD_MUST_HAVE_SYMBOL_CHARACTERS) {
+        pushError({
+          password: [
+            "パスワードには特殊文字を含めてください。^ $ * . [ ] { } ( ) ? - \" ! @ # % & / \\ , > < ' : ; | _ ~ ` + = ",
+          ],
+        });
+      }
       setSuccess(false);
-      console.error(error);
+      console.error(error.message);
     }
   };
 
@@ -108,17 +150,17 @@ function RegisterForm({ setUsername, username }) {
       {success && (
         <p className="text-green-500">ユーザー登録に成功しました。</p>
       )}
+      <div className="mb-5">
+        <p>
+          新規ユーザ登録を行います。メールアドレスとパスワードを入力してください。
+        </p>
+      </div>
       {error.username.length > 0 && (
         <p className="text-red-600 mb-1">{error.username.join(",")}</p>
       )}
       {error.password.length > 0 && (
         <p className="text-red-600 mb-1">{error.password.join(",")}</p>
       )}
-      <div className="mb-5">
-        <p>
-          新規ユーザ登録を行います。メールアドレスとパスワードを入力してください。
-        </p>
-      </div>
       <form onSubmit={handleSubmit} className="register-form">
         <div className="grid grid-cols-2 gap-4">
           <p>メールアドレス</p>
