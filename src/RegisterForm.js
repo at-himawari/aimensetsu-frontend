@@ -94,30 +94,36 @@ function RegisterForm({ setUsername, username }) {
       navigate("/confirm");
       return;
     } catch (error) {
+      let isShowErrorMessage = false;
       if (error.message === USER_ALREADY_EXISTS_MESSAGE) {
         pushError({ username: ["同じユーザが既に存在します"] });
+        isShowErrorMessage = true;
       }
       if (error.message === PASSWORD_NOT_LONG_ENOUGH) {
         pushError({
           password: ["パスワードの長さは8文字以上に設定してください"],
         });
+        isShowErrorMessage = true;
       }
       if (error.message === PASSWORD_MUST_HAVE_UPPERCASE_CHARACTERS) {
         pushError({
           password: ["パスワードには英大文字を含めてください"],
         });
+        isShowErrorMessage = true;
       }
 
       if (error.message === PASSWORD_MUSH_HAVE_NUMERIC_CHARACTERS) {
         pushError({
           password: ["パスワードには数字を含めてください"],
         });
+        isShowErrorMessage = true;
       }
 
       if (error.message === PASSWORD_MUSH_HAVE_LOWERCASE_CHARACTERS) {
         pushError({
           password: ["パスワードには英小文字を含めてください"],
         });
+        isShowErrorMessage = true;
       }
 
       if (error.message === PASSWORD_MUST_HAVE_SYMBOL_CHARACTERS) {
@@ -125,6 +131,12 @@ function RegisterForm({ setUsername, username }) {
           password: [
             "パスワードには特殊文字を含めてください。^ $ * . [ ] { } ( ) ? - \" ! @ # % & / \\ , > < ' : ; | _ ~ ` + = ",
           ],
+        });
+        isShowErrorMessage = true;
+      }
+      if (!isShowErrorMessage) {
+        pushError({
+          password: ["例外のエラーが発生しました", error.message],
         });
       }
       setSuccess(false);
