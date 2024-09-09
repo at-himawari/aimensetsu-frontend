@@ -19,5 +19,4 @@ jobs:
       - name: Run gitleaks
         uses: zricethezav/gitleaks-action@v1.2.0
         with:
-          config: ""  # カスタムのgitleaks設定ファイルを使いたい場合は、そのファイルのパスを指定します。
           args: --redact  # 必要に応じてオプションを追加できます
