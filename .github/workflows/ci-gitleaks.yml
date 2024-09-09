@@ -1,6 +1,6 @@
 name: CI-gitleaks
 on:
-  push: // 1.
+  push:
 jobs:
   asciidoctor_job:
     runs-on: self-hosted
