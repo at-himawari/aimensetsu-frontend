@@ -1,0 +1,13 @@
+name: CI-gitleaks
+on:
+  push: // 1.
+jobs:
+  asciidoctor_job:
+    runs-on: self-hosted
+    name: Scan secrets using gitleaks
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v3   // 2.
+    - name: gitleaks
+      run: |
+        gitleaks detect -v --redact  // 3.
