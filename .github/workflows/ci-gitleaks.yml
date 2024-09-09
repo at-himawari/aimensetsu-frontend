@@ -1,22 +1,13 @@
-name: CI-gitleaks
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
+name: gitleaks
+on: [pull_request, push, workflow_dispatch]
 jobs:
-  gitleaks:
-    name: Run gitleaks scan
+  scan:
+    name: gitleaks
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-
-      - name: Run gitleaks
-        uses: zricethezav/gitleaks-action@v1.2.0
+      - uses: actions/checkout@v3
         with:
-          args: --redact  # 必要に応じてオプションを追加できます
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
