@@ -1,13 +1,23 @@
 name: CI-gitleaks
+
 on:
   push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
 jobs:
-  asciidoctor_job:
-    runs-on: self-hosted
-    name: Scan secrets using gitleaks
+  gitleaks:
+    name: Run gitleaks scan
+    runs-on: ubuntu-latest
     steps:
-    - name: Check out code
-      uses: actions/checkout@v3
-    - name: gitleaks
-      run: |
-        gitleaks detect -v --redact
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Run gitleaks
+        uses: zricethezav/gitleaks-action@v1.2.0
+        with:
+          config: ""  # カスタムのgitleaks設定ファイルを使いたい場合は、そのファイルのパスを指定します。
+          args: --redact  # 必要に応じてオプションを追加できます
