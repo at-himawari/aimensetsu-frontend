@@ -406,191 +406,194 @@ function ChatComponent({ authTokens, setIsError }) {
       <header className="w-full">
         <img src={HeaderWide} alt="header w-full md:h-auto sm:h-[80px]" />
       </header>
-      <div className="flex">
-        <div className="flex text-xl font-bold ml-auto">
-          <img width={20} src={logout} alt="logoutbutton" />
-          <button onClick={handleLogout}>ログアウト</button>
-        </div>
-      </div>
-
-      <div className="chat-container flex -z-1">
-        <div className="flex">
-          <div className="App">
-            {/* サイドバートグルボタン */}
-            <div className="p-4 md:hidden">
-              <button
-                onClick={toggleSidebar}
-                className="p-2 text-white bg-blue-600 rounded"
-              >
-                <AlignLeftIcon width={"20px"} height={"20px"} />
-              </button>
-            </div>
-
-            {/* サイドバー */}
-            <div
-              className={`z-10 fixed top-0 left-0 w-64 h-full bg-gray-400 transition-transform transform ${
-                isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-              } md:translate-x-0 md:relative md:w-64 md:h-auto md:bg-transparent z-50`}
+      <div className="mx-5">
+        <div className="flex sticky top-0 bg-white opacity-85 p-2">
+          {/* サイドバートグルボタン */}
+          <div className="p-4 md:hidden">
+            <button
+              onClick={toggleSidebar}
+              className="p-2 text-white border-2 border-gray-600 rounded"
             >
-              <div className="p-4 bg-white md:bg-transparent overflow-y-auto h-screen">
-                <button
-                  onClick={closeSidebar}
-                  className="p-2 text-white bg-red-600 rounded md:hidden"
-                >
-                  閉じる
-                </button>
-                <h2 className="text-2xl font-bold text-gray-700">Menu</h2>
-                <ul className="mt-4 space-y-2">
-                  <li>
-                    <button
-                      onClick={handleCreateNewThread}
-                      disabled={isNewThreadButtonDisabled}
-                      className="block hover:bg-gray-400 hover:scale-105 mb-4 p-2 w-full text-gray-700 bg-gray-200 rounded"
-                    >
-                      {isNewThreadButtonDisabled ? (
-                        <div className="mx-auto sk-chase">
-                          <div className="sk-chase-dot"></div>
-                          <div className="sk-chase-dot"></div>
-                          <div className="sk-chase-dot"></div>
-                          <div className="sk-chase-dot"></div>
-                          <div className="sk-chase-dot"></div>
-                          <div className="sk-chase-dot"></div>
-                        </div>
-                      ) : (
-                        "+ 新しい面接官と話す"
-                      )}
-                    </button>
-                  </li>
-                  <p className="border-b-2"></p>
-                  <p className="text-gray-700 font-bold text-xl">面接履歴</p>
-                  {Array.isArray(threads) &&
-                    threads.slice().map((thread) => (
-                      <li key={"list-" + thread.thread_id}>
-                        <div className="flex">
-                          {formatDate(thread.created_at)}
-                          <button
-                            id={"delete-button-" + thread.thread_id}
-                            onClick={() => handleDelete(thread.thread_id)}
-                          >
-                            <span id={"delete-img-" + thread.thread_id}>
-                              <img src={Trash} alt="trash" />
-                            </span>
-                          </button>
-                        </div>
+              <AlignLeftIcon width={"20px"} height={"20px"} />
+            </button>
+          </div>
+          <div className="flex text-xl font-bold ml-auto">
+            <img width={20} src={logout} alt="logoutbutton" />
+            <button onClick={handleLogout}>ログアウト</button>
+          </div>
+        </div>
 
-                        <button
-                          id={"thread-" + thread.thread_id}
-                          onClick={() => handleThreadClick(thread.thread_id)}
-                          className="block truncate text-sm hover:bg-gray-400 hover:scale-105 overflow-hidden whitespace-nowrap max-w-xs py-100 w-full h-[64px] text-gray-700 bg-gray-200 rounded"
-                        >
-                          {getThreadSummary(thread)}
-                        </button>
-                        <button className="hidden hover:display">aaa</button>
-                      </li>
-                    ))}
-                </ul>
+        <div className="chat-container flex -z-1">
+          <div className="flex">
+            <div className="App">
+              {/* サイドバー */}
+              <div
+                className={`z-10 fixed top-0 left-0 w-64 h-full bg-gray-400 transition-transform transform ${
+                  isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                } md:translate-x-0 md:relative md:w-64 md:h-auto md:bg-transparent z-50`}
+              >
+                <div className="p-4 bg-white md:bg-transparent overflow-y-auto h-screen">
+                  <button
+                    onClick={closeSidebar}
+                    className="p-2 text-white bg-red-600 rounded md:hidden"
+                  >
+                    閉じる
+                  </button>
+                  <h2 className="text-2xl font-bold text-gray-700">Menu</h2>
+                  <ul className="mt-4 space-y-2">
+                    <li>
+                      <button
+                        onClick={handleCreateNewThread}
+                        disabled={isNewThreadButtonDisabled}
+                        className="block hover:bg-gray-400 hover:scale-105 mb-4 p-2 w-full text-gray-700 bg-gray-200 rounded"
+                      >
+                        {isNewThreadButtonDisabled ? (
+                          <div className="mx-auto sk-chase">
+                            <div className="sk-chase-dot"></div>
+                            <div className="sk-chase-dot"></div>
+                            <div className="sk-chase-dot"></div>
+                            <div className="sk-chase-dot"></div>
+                            <div className="sk-chase-dot"></div>
+                            <div className="sk-chase-dot"></div>
+                          </div>
+                        ) : (
+                          "+ 新しい面接官と話す"
+                        )}
+                      </button>
+                    </li>
+                    <p className="border-b-2"></p>
+                    <p className="text-gray-700 font-bold text-xl">面接履歴</p>
+                    {Array.isArray(threads) &&
+                      threads.slice().map((thread) => (
+                        <li key={"list-" + thread.thread_id}>
+                          <div className="flex">
+                            {formatDate(thread.created_at)}
+                            <button
+                              id={"delete-button-" + thread.thread_id}
+                              onClick={() => handleDelete(thread.thread_id)}
+                            >
+                              <span id={"delete-img-" + thread.thread_id}>
+                                <img src={Trash} alt="trash" />
+                              </span>
+                            </button>
+                          </div>
+
+                          <button
+                            id={"thread-" + thread.thread_id}
+                            onClick={() => handleThreadClick(thread.thread_id)}
+                            className="block truncate text-sm hover:bg-gray-400 hover:scale-105 overflow-hidden whitespace-nowrap max-w-xs py-100 w-full h-[64px] text-gray-700 bg-gray-200 rounded"
+                          >
+                            {getThreadSummary(thread)}
+                          </button>
+                          <button className="hidden hover:display">aaa</button>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
               </div>
+
+              {/* オーバーレイ */}
+              {isSidebarOpen && (
+                <div
+                  onClick={closeSidebar}
+                  className="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 md:hidden"
+                ></div>
+              )}
             </div>
 
-            {/* オーバーレイ */}
-            {isSidebarOpen && (
-              <div
-                onClick={closeSidebar}
-                className="fixed inset-0 bg-gray-900 bg-opacity-50 z-40 md:hidden"
-              ></div>
-            )}
-          </div>
-
-          <div className="messages-container ">
-            {/**カード表示 */}
-            {!isNewThreadCreated &&
-              isTextareaDisabled &&
-              threads?.length === 0 && (
-                <div className=" flex justify-center items-center h-screen">
-                  <div className="flex flex-col items-center">
-                    <div
-                      onClick={handleCreateNewThread}
-                      className="w-50 h-50 bg-white rounded-lg shadow-lg p-4"
-                    >
-                      <h2 className="text-xl font-bold">新しい面接官と話す</h2>
-                      <p>本番前の準備をしましょう！</p>
+            <div className="messages-container ">
+              {/**カード表示 */}
+              {!isNewThreadCreated &&
+                isTextareaDisabled &&
+                threads?.length === 0 && (
+                  <div className=" flex justify-center items-center h-screen">
+                    <div className="flex flex-col items-center">
+                      <div
+                        onClick={handleCreateNewThread}
+                        className="w-50 h-50 bg-white rounded-lg shadow-lg p-4"
+                      >
+                        <h2 className="text-xl font-bold">
+                          新しい面接官と話す
+                        </h2>
+                        <p>本番前の準備をしましょう！</p>
+                      </div>
                     </div>
+                  </div>
+                )}
+              {!isTextareaDisabled && threads.length !== 0 && (
+                <div ref={initialMessageRef}>
+                  <div className="flex items-start">
+                    {/** AIのイラスト */}
+                    <AiIcon />
+
+                    <p className="flex-1">{initialMessage}</p>
                   </div>
                 </div>
               )}
-            {!isTextareaDisabled && threads.length !== 0 && (
-              <div ref={initialMessageRef}>
-                <div className="flex items-start">
-                  {/** AIのイラスト */}
-                  <AiIcon />
 
-                  <p className="flex-1">{initialMessage}</p>
-                </div>
-              </div>
-            )}
-
-            {Array.isArray(chatHistory) &&
-              chatHistory.map((chat, index) => (
-                <div key={"USER" + index}>
-                  {/** ユーザーのメッセージ表示 */}
-                  {chat.sender === "USER" && (
-                    <div className="flex justify-end my-5">
-                      <div className="justify-end flex rounded-3xl bg-[#f4f4f4] px-5 py-5 max-w-[70%]">
-                        {chat.message}
+              {Array.isArray(chatHistory) &&
+                chatHistory.map((chat, index) => (
+                  <div key={"USER" + index}>
+                    {/** ユーザーのメッセージ表示 */}
+                    {chat.sender === "USER" && (
+                      <div className="flex justify-end my-5">
+                        <div className="justify-end flex rounded-3xl bg-[#f4f4f4] px-5 py-5 max-w-[70%]">
+                          {chat.message}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {/** AIの回答表示 */}
-                  {chat.sender === "AI" && (
-                    <div key={"AI" + index} className="flex items-start">
-                      {/** AIのイラスト */}
-                      <AiIcon />
+                    )}
+                    {/** AIの回答表示 */}
+                    {chat.sender === "AI" && (
+                      <div key={"AI" + index} className="flex items-start">
+                        {/** AIのイラスト */}
+                        <AiIcon />
 
-                      <div
-                        id={chat?.id}
-                        className="flex-1 "
-                        dangerouslySetInnerHTML={{
-                          __html: marked(
-                            chat?.message || "エラーが発生しました",
-                            markedOptions
-                          ),
-                        }}
-                      ></div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                        <div
+                          id={chat?.id}
+                          className="flex-1 "
+                          dangerouslySetInnerHTML={{
+                            __html: marked(
+                              chat?.message || "エラーが発生しました",
+                              markedOptions
+                            ),
+                          }}
+                        ></div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+            </div>
           </div>
+          <span ref={bottomRef} />
+          <form className="search-bar fixed left-0 w-full bg-white z-50">
+            <textarea
+              id="search-bar-input"
+              type="text"
+              value={searchWord}
+              onChange={(e) => setSearchWord(e.target.value)}
+              onKeyDown={handleKeyDown}
+              required
+              placeholder={
+                isTextareaDisabled
+                  ? "｢新しい面接官と話す｣をクリックしてください"
+                  : "メッセージを入力してください"
+              }
+              rows={1}
+              ref={textareaRef}
+              style={{ overflow: "hidden" }}
+              disabled={isTextareaDisabled}
+              autoFocus={isTextareaFocused}
+            />
+            <button
+              disabled={isSendButtonDisabled}
+              onClick={handleSubmit}
+              type="submit"
+            >
+              {/**送信ボタン画像 */}
+              <SendIcon />
+            </button>
+          </form>
         </div>
-        <span ref={bottomRef} />
-        <form className="search-bar fixed left-0 w-full bg-white z-50">
-          <textarea
-            id="search-bar-input"
-            type="text"
-            value={searchWord}
-            onChange={(e) => setSearchWord(e.target.value)}
-            onKeyDown={handleKeyDown}
-            required
-            placeholder={
-              isTextareaDisabled
-                ? "｢新しい面接官と話す｣をクリックしてください"
-                : "メッセージを入力してください"
-            }
-            rows={1}
-            ref={textareaRef}
-            style={{ overflow: "hidden" }}
-            disabled={isTextareaDisabled}
-            autoFocus={isTextareaFocused}
-          />
-          <button
-            disabled={isSendButtonDisabled}
-            onClick={handleSubmit}
-            type="submit"
-          >
-            {/**送信ボタン画像 */}
-            <SendIcon />
-          </button>
-        </form>
       </div>
     </div>
   );
