@@ -1,0 +1,4 @@
+[[path]]
+  description = "Ignore HTML files"
+  regex = '''\.html$'''
+  allowlist = true
