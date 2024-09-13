@@ -162,10 +162,23 @@ function RegisterForm({ setUsername, username }) {
       {success && (
         <p className="text-green-500">ユーザー登録に成功しました。</p>
       )}
-      <div className="mb-5">
+      <div className="mb-2">
         <p>
           新規ユーザ登録を行います。メールアドレスとパスワードを入力してください。
         </p>
+      </div>
+      <div className="mb-5 rounded border-4 p-1 border-dotted ">
+        <p>パスワードの条件</p>
+        <ul className="ml-5 text-xs list-disc">
+          <li>パスワードの長さは8文字以上に設定してください</li>
+          <li>パスワードには数字を含めてください</li>
+          <li>パスワードには英小文字を含めてください</li>
+          <li>パスワードには英大文字を含めてください</li>
+          <li>
+            パスワードには特殊文字を含めてください。^ $ * . [ ] {} ( ) ? -
+            \&quot; ! @ # % &amp; / \\ , &gt; &lt; &#039; : ; | _ ~ ` + ={" "}
+          </li>
+        </ul>
       </div>
       {error.username.length > 0 && (
         <p className="text-red-600 mb-1">{error.username.join(",")}</p>
