@@ -74,67 +74,69 @@ function LoginForm({ setAuthTokens, username, setUsername }) {
       <header>
         <img src={Header} alt="header" />
       </header>
-      {errorMessage.length > 0 && (
-        <div>
-          <p className="text-red-600 mb-1">{errorMessage}</p>
-        </div>
-      )}
-
-      <form className="flex flex-col mb-4" onSubmit={handleSubmit}>
-        <div className="grid grid-cols-2  mx-auto">
-          <p className="text-gray-700 text-2xl">メールアドレス</p>
-          <input
-            type="text"
-            placeholder="Mail Address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="border-b-2 border-gray-700 text-xl"
-          />
-
-          <p className="text-gray-700 text-2xl">パスワード</p>
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="border-b-2 border-gray-700 text-xl"
-          />
-        </div>
-        <div className="m-4 mx-auto">
-          <div className="grid gap-0 md:grid-cols-2">
-            <button
-              className="w-full mt-4 md:mr-1 text-sm  p-2 bg-blue-600 text-white rounded hover:bg-blue-500"
-              type="submit"
-            >
-              ログイン
-            </button>
-            <button
-              className="w-full mt-4 md:ml-1 text-sm  p-2 bg-blue-600 text-white rounded hover:bg-blue-500"
-              onClick={(e) => {
-                navigate("/register");
-              }}
-            >
-              新規登録
-            </button>
-          </div>
-          <div className="mt-5">
-            <button
-              onClick={handleRestPassword}
-              className="no-underline hover:underline"
-            >
-              パスワードをお忘れですか？
-            </button>
-          </div>
+      <div className="mx-5">
+        {errorMessage.length > 0 && (
           <div>
-            <button
-              onClick={handleInTrouble}
-              className="no-underline hover:underline"
-            >
-              その他お困りのことがありますか？
-            </button>
+            <p className="text-red-600 mb-1">{errorMessage}</p>
           </div>
-        </div>
-      </form>
+        )}
+
+        <form className="flex flex-col mb-4" onSubmit={handleSubmit}>
+          <div className="grid grid-cols-2  mx-auto">
+            <p className="text-gray-700 text-2xl">メールアドレス</p>
+            <input
+              type="text"
+              placeholder="Mail Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="border-b-2 border-gray-700 text-xl"
+            />
+
+            <p className="text-gray-700 text-2xl">パスワード</p>
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="border-b-2 border-gray-700 text-xl"
+            />
+          </div>
+          <div className="m-4 mx-auto">
+            <div className="grid gap-0 md:grid-cols-2">
+              <button
+                className="w-full mt-4 md:mr-1 text-sm  p-2 bg-blue-600 text-white rounded hover:bg-blue-500"
+                type="submit"
+              >
+                ログイン
+              </button>
+              <button
+                className="w-full mt-4 md:ml-1 text-sm  p-2 bg-blue-600 text-white rounded hover:bg-blue-500"
+                onClick={(e) => {
+                  navigate("/register");
+                }}
+              >
+                新規登録
+              </button>
+            </div>
+            <div className="mt-5">
+              <button
+                onClick={handleRestPassword}
+                className="no-underline hover:underline"
+              >
+                パスワードをお忘れですか？
+              </button>
+            </div>
+            <div>
+              <button
+                onClick={handleInTrouble}
+                className="no-underline hover:underline"
+              >
+                その他お困りのことがありますか？
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
