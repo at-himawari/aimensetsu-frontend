@@ -406,23 +406,22 @@ function ChatComponent({ authTokens, setIsError }) {
       <header className="w-full">
         <img src={HeaderWide} alt="header w-full md:h-auto sm:h-[80px]" />
       </header>
-      <div className="mx-5">
-        <div className="flex sticky top-0 bg-white opacity-85 p-2">
-          {/* サイドバートグルボタン */}
-          <div className="p-4 md:hidden">
-            <button
-              onClick={toggleSidebar}
-              className="p-2 text-white border-2 border-gray-600 rounded"
-            >
-              <AlignLeftIcon width={"20px"} height={"20px"} />
-            </button>
-          </div>
-          <div className="flex text-xl font-bold ml-auto">
-            <img width={20} src={logout} alt="logoutbutton" />
-            <button onClick={handleLogout}>ログアウト</button>
-          </div>
+      <div className="flex sticky top-0 bg-white opacity-85 p-2 pr-5">
+        {/* サイドバートグルボタン */}
+        <div className="p-4 md:hidden">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 text-white border-2 border-gray-600 rounded"
+          >
+            <AlignLeftIcon width={"20px"} height={"20px"} />
+          </button>
         </div>
-
+        <div className="flex text-xl font-bold ml-auto">
+          <img width={20} src={logout} alt="logoutbutton" />
+          <button onClick={handleLogout}>ログアウト</button>
+        </div>
+      </div>
+      <div className="mx-5">
         <div className="chat-container flex -z-1">
           <div className="flex">
             <div className="App">
