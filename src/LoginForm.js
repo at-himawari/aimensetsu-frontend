@@ -83,7 +83,7 @@ function LoginForm({ setAuthTokens, username, setUsername }) {
 
         <form className="flex flex-col mb-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2  mx-auto">
-            <p className="text-gray-700 text-2xl">メールアドレス</p>
+            <p className="text-gray-700 text-[23px]">メールアドレス</p>
             <input
               type="text"
               placeholder="Mail Address"
@@ -92,7 +92,7 @@ function LoginForm({ setAuthTokens, username, setUsername }) {
               className="border-b-2 border-gray-700 text-xl"
             />
 
-            <p className="text-gray-700 text-2xl">パスワード</p>
+            <p className="text-gray-700 text-[23px]">パスワード</p>
             <input
               type="password"
               placeholder="Password"

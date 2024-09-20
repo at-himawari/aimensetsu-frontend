@@ -9,13 +9,11 @@ import { Route, Routes } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import ResetPasswordForm from "./ResetPasswordForm";
 
-
-
 function App() {
   const [authTokens, setAuthTokens] = useState(null);
   const [isError, setIsError] = useState({ open: false, message: "" });
   const [, setIsLogin] = useState(false);
-  const [cookies, , ] = useCookies();
+  const [cookies, ,] = useCookies();
   const navigate = useNavigate();
   const [username, setUsername] = useState(null);
 
@@ -31,24 +29,33 @@ function App() {
     }
   }, []);
   return (
-    <div className="App">
+    <div className="font-noto App">
       <Routes>
-        <Route path="/resetpassword" element={<ResetPasswordForm/>} />
-        <Route path="/register" element={<RegisterForm setUsername={setUsername} username={username} />} />
-        <Route path="/confirm" element={<RegisterConfirmForm username={username}/>} />
-        <Route 
+        <Route path="/resetpassword" element={<ResetPasswordForm />} />
+        <Route
+          path="/register"
+          element={
+            <RegisterForm setUsername={setUsername} username={username} />
+          }
+        />
+        <Route
+          path="/confirm"
+          element={<RegisterConfirmForm username={username} />}
+        />
+        <Route
           path="/"
           element={
-            <LoginForm setAuthTokens={setAuthTokens} setUsername={setUsername} username={ username } />
+            <LoginForm
+              setAuthTokens={setAuthTokens}
+              setUsername={setUsername}
+              username={username}
+            />
           }
         />
         <Route
           path="/chat"
           element={
-            <ChatComponent
-              authTokens={authTokens}
-              setIsError={setIsError}
-            />
+            <ChatComponent authTokens={authTokens} setIsError={setIsError} />
           }
         />
         <Route
@@ -60,10 +67,10 @@ function App() {
                 setIsError({ open: false, message: "" });
                 navigate("/chat");
               }}
-                  onOk={() => {
-                      setIsError({ open: false, message: "" });
-                      navigate("/chat");
-                  }}
+              onOk={() => {
+                setIsError({ open: false, message: "" });
+                navigate("/chat");
+              }}
               message={isError.message}
             />
           }
