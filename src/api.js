@@ -8,7 +8,6 @@ const api = axios.create({
 api.interceptors.request.use(async (config) => {
   const authTokens = (await fetchAuthSession()).tokens.idToken.toString();
 
-
   if (authTokens) {
     config.headers.Authorization = `Bearer ${authTokens}`;
   }
@@ -20,13 +19,9 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    const originalRequest = error.config;
 
-    if (
-      error.response.status === 401 &&
-      originalRequest.url ===
-        `${process.env.REACT_APP_BASE_URL}/api/token/refresh/`
-    ) {
+    if (error.response.status === 401) {
+      alert("セッションが切れました。再度ログインしてください。");
       window.location.href = "/login/";
       return Promise.reject(error);
     }

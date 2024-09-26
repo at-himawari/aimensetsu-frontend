@@ -267,21 +267,16 @@ function ChatComponent({ authTokens, setIsError }) {
 
     // チャット履歴がない場合、要約タイトルを取得
     try {
-      const response = await fetch(
+      const body = {
+        search_word: searchWord,
+        thread_id: threadId,
+      };
+      const response = api.post(
         `${process.env.REACT_APP_BASE_URL}/api/openai/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authTokens}`,
-          },
-          body: JSON.stringify({
-            search_word: searchWord,
-            thread_id: threadId,
-          }),
-        }
+        body
       );
-      const data = await response.json();
+
+      const data = (await response).data;
       if (chatHistory.length === 0) {
         // スレッド履歴を取得して、スレッドを更新
         const allThreads = await getAllThreads();
