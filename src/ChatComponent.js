@@ -29,6 +29,8 @@ function ChatComponent({ authTokens, setIsError }) {
   const bottomRef = useRef(null);
   const textareaRef = useRef(null);
   const initialMessageRef = useRef(null);
+  // 回答を生成中
+  const [isCreatingAI, setIsCreatingAI] = useState(false);
   // スレッド一覧
   const [threads, setThreads] = useState([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false); // サイドバーの表示状態
@@ -264,6 +266,13 @@ function ChatComponent({ authTokens, setIsError }) {
 
     // 一時的なメッセージを表示
     setChatHistory([...chatHistory, { sender: "USER", message: searchWord }]);
+    setIsCreatingAI(true);
+
+    setChatHistory([
+      ...chatHistory,
+      { sender: "USER", message: searchWord },
+      { sender: "AI", message: "回答を生成中" },
+    ]);
 
     // チャット履歴がない場合、要約タイトルを取得
     try {
@@ -287,6 +296,7 @@ function ChatComponent({ authTokens, setIsError }) {
 
       // 全体のメッセージを表示
       // USERを消すと、AIメッセージで上書きされてしまう。
+      setIsCreatingAI(false);
       setChatHistory([
         ...chatHistory,
         { sender: "USER", message: searchWord },
@@ -541,17 +551,17 @@ function ChatComponent({ authTokens, setIsError }) {
                       <div key={"AI" + index} className="flex items-start">
                         {/** AIのイラスト */}
                         <AiIcon />
-
                         <div
                           id={chat?.id}
-                          className="flex-1 "
+                          className={`flex-1`}
                           dangerouslySetInnerHTML={{
                             __html: marked(
                               chat?.message || "エラーが発生しました",
                               markedOptions
                             ),
                           }}
-                        ></div>
+                        >
+                        </div>
                       </div>
                     )}
                   </div>
